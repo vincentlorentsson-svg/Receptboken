@@ -1,0 +1,2102 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Receptboken</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Nunito', sans-serif; background: #FFF8F0; color: #2C1810; min-height: 100vh; overflow-x: hidden; }
+.page { display: none !important; }
+.page.active { display: block !important; }
+#auth-page { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #FF6B35 0%, #F7931E 40%, #FFD166 100%); padding: 2rem; }
+#auth-page.active { display: flex !important; }
+#main-page.active { display: flex !important; flex-direction: column; min-height: 100vh; }
+.auth-card { background: #fff; border-radius: 24px; padding: 2.5rem; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(255,107,53,0.3); }
+.auth-logo { text-align: center; margin-bottom: 1.5rem; }
+.auth-logo .logo-icon { font-size: 48px; display: block; margin-bottom: 0.5rem; }
+.auth-logo h1 { font-family: 'Playfair Display', serif; font-size: 28px; color: #FF6B35; font-weight: 700; }
+.auth-logo p { font-size: 13px; color: #999; margin-top: 4px; }
+.auth-tabs { display: flex; background: #FFF0E8; border-radius: 12px; padding: 4px; margin-bottom: 1.5rem; gap: 4px; }
+.auth-tab { flex: 1; padding: 8px; border: none; background: transparent; border-radius: 10px; font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700; color: #111; cursor: pointer; transition: all 0.2s; }
+.auth-tab.active { background: #FF6B35; color: #fff; }
+.auth-form input[type=email], .auth-form input[type=password], .auth-form input[type=text] { width: 100%; padding: 12px 16px; border: 1.5px solid #FFD5C0; border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: 14px; margin-bottom: 12px; outline: none; transition: border 0.2s; background: #FFFAF7; color: #111; }
+.auth-form input::placeholder { color: #aaa; }
+.auth-form input:focus { border-color: #FF6B35; }
+.auth-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #FF6B35, #F7931E); color: #fff; border: none; border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: transform 0.15s, opacity 0.15s; margin-top: 4px; }
+.auth-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+.auth-btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+.auth-error { color: #E24B4A; font-size: 13px; margin-top: 8px; text-align: center; min-height: 20px; }
+.top-nav { background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%); padding: 0 1.5rem; display: flex; align-items: center; justify-content: space-between; height: 64px; position: sticky; top: 0; z-index: 100; }
+.nav-logo { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+.nav-right { display: flex; align-items: center; gap: 8px; }
+.welcome-text { font-size: 13px; color: rgba(255,255,255,0.95); font-weight: 600; }
+.nav-icon-btn { width: 40px; height: 40px; border-radius: 50%; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; color: #fff; transition: all 0.15s; }
+.nav-icon-btn:hover { background: rgba(255,255,255,0.35); }
+.fab-add { width: 40px; height: 40px; border-radius: 50%; background: #fff; border: none; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 24px; color: #FF6B35; font-weight: 700; transition: all 0.15s; box-shadow: 0 2px 10px rgba(0,0,0,0.15); line-height: 1; }
+.fab-add:hover { background: #FFF0E8; transform: scale(1.08); }
+.fab-add:active { transform: scale(0.95); }
+.fab-add.hidden { display: none !important; }
+.nav-btn-logout { padding: 7px 14px; border-radius: 10px; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all 0.15s; background: rgba(255,255,255,0.2); color: #fff; border: 1px solid rgba(255,255,255,0.4); }
+.nav-btn-logout:hover { background: rgba(255,255,255,0.3); }
+.cat-bar { background: #fff; padding: 12px 1.5rem; display: flex; gap: 8px; overflow-x: auto; border-bottom: 1px solid #FFE8D6; }
+.cat-bar::-webkit-scrollbar { height: 0; }
+.cat-pill { padding: 6px 16px; border-radius: 20px; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; border: 1.5px solid #FFD5C0; background: #fff; color: #FF6B35; transition: all 0.15s; font-family: 'Nunito', sans-serif; }
+.cat-pill.active, .cat-pill:hover { background: #FF6B35; color: #fff; border-color: #FF6B35; }
+.search-bar { background: #fff; padding: 12px 1.5rem; border-bottom: 1px solid #FFE8D6; }
+.search-wrap { position: relative; max-width: 500px; }
+.search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; pointer-events: none; }
+.search-input { width: 100%; padding: 10px 14px 10px 40px; border: 1.5px solid #FFD5C0; border-radius: 20px; font-family: 'Nunito', sans-serif; font-size: 14px; outline: none; background: #FFFAF7; color: #2C1810; transition: border 0.2s; }
+.search-input:focus { border-color: #FF6B35; }
+.search-input::placeholder { color: #bbb; }
+.search-clear { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: #ccc; display: none; padding: 2px; }
+.search-clear:hover { color: #FF6B35; }
+.daily-recipe-bar { background:#fff; padding:14px 1.5rem 16px; border-bottom:1px solid #FFE8D6; }
+.daily-label { font-family:'Playfair Display',serif; font-size:15px; font-weight:700; color:#FF6B35; margin-bottom:10px; }
+.daily-cards { display:flex; gap:12px; overflow-x:auto; }
+.daily-cards::-webkit-scrollbar { height:0; }
+.daily-card { flex:0 0 auto; width:220px; background:#FFF8F0; border:1.5px solid #FFE0CC; border-radius:16px; padding:12px 14px; cursor:pointer; transition:transform 0.15s,box-shadow 0.15s; }
+.daily-card:hover { transform:translateY(-3px); box-shadow:0 8px 24px rgba(255,107,53,0.15); }
+.daily-card-tag { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; color:#FF6B35; background:#FFE8D6; padding:3px 8px; border-radius:6px; display:inline-block; margin-bottom:6px; }
+.daily-card-title { font-family:'Playfair Display',serif; font-size:14px; font-weight:700; color:#2C1810; line-height:1.3; }
+.daily-card-author { font-size:11px; color:#bbb; margin-top:4px; font-weight:600; }
+.daily-card-author span { color:#FF6B35; }
+body.dark .daily-recipe-bar { background:#2C1F12 !important; border-color:#5C3D1E !important; }
+body.dark .daily-card { background:#1A1208 !important; border-color:#5C3D1E !important; }
+body.dark .daily-card-title { color:#F5E6D0 !important; }
+body.dark .daily-card-tag { background:#3C2A18 !important; }
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+.section-title { font-family: 'Playfair Display', serif; font-size: 22px; color: #2C1810; }
+.recipe-count { font-size: 13px; background: #FFE8D6; padding: 4px 12px; border-radius: 20px; font-weight: 600; color: #FF6B35; }
+.loading-spinner { text-align: center; padding: 3rem; }
+.spinner { width: 32px; height: 32px; border: 3px solid #FFD5C0; border-top-color: #FF6B35; border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 12px; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-spinner p { font-size: 14px; font-weight: 600; color: #FF6B35; }
+.empty-state { text-align: center; padding: 4rem 2rem; }
+.empty-state .empty-icon { font-size: 56px; margin-bottom: 1rem; }
+.empty-state h3 { font-family: 'Playfair Display', serif; font-size: 22px; color: #ccc; margin-bottom: 0.5rem; }
+.empty-state p { font-size: 14px; color: #bbb; }
+.recipe-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem; }
+.recipe-card { background: #fff; border-radius: 20px; overflow: hidden; border: 1px solid #FFE8D6; cursor: pointer; transition: transform 0.2s, box-shadow 0.2s; }
+.recipe-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(255,107,53,0.15); }
+.card-img { width: 100%; height: 180px; overflow: hidden; display: block; }
+.card-img svg { width: 100%; height: 100%; display: block; }
+.card-body { padding: 1rem 1.25rem; }
+.card-cat { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 3px 10px; border-radius: 8px; margin-bottom: 8px; }
+.cat-frukost { background: #FFF3CD; color: #856404; }
+.cat-lunch { background: #D1ECF1; color: #0C5460; }
+.cat-middag { background: #F8D7DA; color: #721C24; }
+.cat-dessert { background: #E2D9F3; color: #4A235A; }
+.cat-snack { background: #D4EDDA; color: #155724; }
+.cat-dryck { background: #CCE5FF; color: #004085; }
+.cat-vegetarisk { background: #C8F7C5; color: #1a5c17; }
+.cat-övrigt { background: #FFE8D6; color: #7B3F00; }
+.card-title { font-family: 'Playfair Display', serif; font-size: 17px; font-weight: 700; color: #2C1810; margin-bottom: 6px; line-height: 1.3; }
+.card-author { font-size: 12px; color: #aaa; font-weight: 600; }
+.card-author span { color: #FF6B35; }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: flex-start; justify-content: center; z-index: 200; padding: 1rem; overflow-y: auto; }
+.modal-overlay.open { display: flex; }
+.modal { background: #fff; border-radius: 24px; width: 100%; max-width: 560px; margin: auto; overflow: hidden; }
+.modal-header { background: linear-gradient(135deg, #FF6B35, #F7931E); padding: 1.25rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+.modal-header h2 { font-family: 'Playfair Display', serif; color: #fff; font-size: 20px; }
+.modal-close { background: rgba(255,255,255,0.25); border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 18px; cursor: pointer; color: #fff; display: flex; align-items: center; justify-content: center; }
+.modal-close:hover { background: rgba(255,255,255,0.4); }
+.modal-body { padding: 1.5rem; }
+.form-group { margin-bottom: 1rem; }
+.form-label { display: block; font-size: 13px; font-weight: 700; color: #666; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.4px; }
+.form-input { width: 100%; padding: 11px 14px; border: 1.5px solid #FFD5C0; border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: 14px; outline: none; transition: border 0.2s; background: #FFFAF7; color: #2C1810; }
+.form-input:focus { border-color: #FF6B35; }
+select.form-input { cursor: pointer; }
+textarea.form-input { resize: vertical; min-height: 100px; }
+.img-upload-area { border: 2px dashed #FFD5C0; border-radius: 12px; padding: 1.5rem; text-align: center; cursor: pointer; background: #FFFAF7; position: relative; overflow: hidden; transition: border-color 0.2s; }
+.img-upload-area:hover { border-color: #FF6B35; }
+.img-upload-area input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+.img-preview { width: 100%; height: 160px; object-fit: cover; border-radius: 10px; display: none; }
+.upload-placeholder { color: #ccc; }
+.upload-placeholder .up-icon { font-size: 32px; display: block; margin-bottom: 8px; }
+.upload-placeholder p { font-size: 13px; }
+.ingr-list { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.ingr-row { display: flex; gap: 6px; }
+.ingr-row input { flex: 1; }
+.rm-btn { background: #FFE8D6; border: none; border-radius: 8px; width: 36px; height: 36px; cursor: pointer; font-size: 16px; color: #FF6B35; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.add-ingr-btn { background: #FFF0E8; border: 1.5px dashed #FFD5C0; border-radius: 10px; padding: 8px; width: 100%; cursor: pointer; font-family: 'Nunito', sans-serif; font-size: 13px; color: #FF6B35; font-weight: 600; }
+.add-ingr-btn:hover { background: #FFE8D6; }
+.submit-btn { width: 100%; padding: 14px; background: linear-gradient(135deg, #FF6B35, #F7931E); color: #fff; border: none; border-radius: 12px; font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; margin-top: 0.5rem; transition: opacity 0.15s; }
+.submit-btn:hover { opacity: 0.9; }
+.submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+#view-illustration svg { width: 100%; height: 220px; display: block; }
+.view-cat { margin: 1rem 1.5rem 0; }
+.view-title { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: #2C1810; padding: 0.75rem 1.5rem 0; line-height: 1.25; }
+.view-author { padding: 0.25rem 1.5rem 0.75rem; font-size: 13px; color: #aaa; font-weight: 600; border-bottom: 1px solid #FFE8D6; }
+.view-author span { color: #FF6B35; }
+.view-section { padding: 1rem 1.5rem 0; }
+.view-section h3 { font-size: 14px; font-weight: 700; color: #FF6B35; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+.ingr-chips { display: flex !important; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+.ingr-chip { background: #FFF0E8; border: 1px solid #FFD5C0; border-radius: 20px; padding: 5px 12px; font-size: 13px; color: #7B3F00; font-weight: 600; }
+.view-instructions { font-size: 14px; line-height: 1.8; color: #555; white-space: pre-wrap; padding-bottom: 0.5rem; }
+.view-actions { padding: 1rem 1.5rem 1.5rem; display: flex; gap: 10px; flex-wrap: wrap; }
+.delete-btn { padding: 10px 20px; background: #FFE8E8; border: 1px solid #FFBBBB; border-radius: 10px; color: #E24B4A; font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; }
+.delete-btn:hover { background: #FFD5D5; }
+.form-error { color: #E24B4A; font-size: 13px; margin-top: 8px; text-align: center; min-height: 18px; }
+
+/* ── TIMER ── */
+.timer-section { padding: 1rem 1.5rem 0; }
+.timer-section h3 { font-size: 14px; font-weight: 700; color: #FF6B35; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+.timer-box { background: #FFF8F0; border: 1.5px solid #FFE0CC; border-radius: 16px; padding: 1rem; }
+.timer-display { font-family: 'Playfair Display', serif; font-size: 42px; font-weight: 700; color: #FF6B35; text-align: center; letter-spacing: 2px; margin-bottom: 12px; }
+.timer-display.running { color: #2C8A4A; }
+.timer-display.done { color: #E24B4A; animation: pulse 0.6s infinite; }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+.timer-inputs { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; justify-content: center; }
+.timer-inputs input { width: 64px; padding: 8px; border: 1.5px solid #FFD5C0; border-radius: 10px; text-align: center; font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 700; background: #fff; color: #2C1810; outline: none; }
+.timer-inputs input:focus { border-color: #FF6B35; }
+.timer-sep { font-size: 20px; font-weight: 700; color: #FF6B35; }
+.timer-label { font-size: 11px; color: #aaa; text-align: center; margin-bottom: 8px; display: flex; gap: 8px; justify-content: center; }
+.timer-label span { display: block; width: 64px; text-align: center; }
+.timer-btns { display: flex; gap: 8px; justify-content: center; }
+.timer-btn { padding: 8px 20px; border-radius: 10px; font-family: 'Nunito', sans-serif; font-size: 14px; font-weight: 700; cursor: pointer; border: none; transition: all 0.15s; }
+.timer-btn.start { background: linear-gradient(135deg, #FF6B35, #F7931E); color: #fff; }
+.timer-btn.start:hover { opacity: 0.9; }
+.timer-btn.pause { background: #FFF0E8; color: #FF6B35; border: 1.5px solid #FFD5C0; }
+.timer-btn.reset { background: #f5f5f5; color: #888; border: 1.5px solid #ddd; }
+.timer-presets { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; justify-content: center; }
+.timer-preset { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer; background: #FFF0E8; color: #FF6B35; border: 1px solid #FFD5C0; font-family: 'Nunito', sans-serif; }
+.timer-preset:hover { background: #FF6B35; color: #fff; }
+
+/* ── SETTINGS MODAL ── */
+.settings-section { margin-bottom: 1.5rem; }
+.settings-section h3 { font-size: 14px; font-weight: 700; color: #FF6B35; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 1px solid #FFE8D6; }
+.settings-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #FFF0E8; }
+.settings-row:last-child { border-bottom: none; }
+.settings-row-label { font-size: 14px; font-weight: 600; color: #2C1810; }
+.settings-row-sub { font-size: 12px; color: #aaa; margin-top: 2px; }
+.toggle { position: relative; width: 44px; height: 24px; flex-shrink: 0; }
+.toggle input { opacity: 0; width: 0; height: 0; }
+.toggle-slider { position: absolute; inset: 0; background: #ddd; border-radius: 24px; cursor: pointer; transition: background 0.2s; }
+.toggle-slider:before { content: ''; position: absolute; width: 18px; height: 18px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: transform 0.2s; }
+.toggle input:checked + .toggle-slider { background: #FF6B35; }
+.toggle input:checked + .toggle-slider:before { transform: translateX(20px); }
+.volume-slider { width: 100px; accent-color: #FF6B35; }
+.sound-test-btn { padding: 6px 14px; background: #FFF0E8; border: 1px solid #FFD5C0; border-radius: 8px; font-family: 'Nunito', sans-serif; font-size: 12px; font-weight: 700; color: #FF6B35; cursor: pointer; }
+.my-recipe-item { display:flex; align-items:center; justify-content:space-between; padding:8px 10px; background:#FFFAF7; border:1px solid #FFE8D6; border-radius:10px; margin-bottom:6px; font-size:13px; }
+.my-recipe-item span { font-weight:600; color:#2C1810; flex:1; margin-right:8px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.my-recipe-del { background:#FFE8E8; border:1px solid #FFBBBB; border-radius:7px; padding:4px 10px; font-family:'Nunito',sans-serif; font-size:12px; font-weight:700; color:#E24B4A; cursor:pointer; flex-shrink:0; }
+.my-recipe-del:hover { background:#FFD5D5; }
+.dagens-badge { display:inline-block; background:linear-gradient(135deg,#FF6B35,#F7931E); color:#fff; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.8px; padding:3px 10px; border-radius:20px; margin-bottom:8px; }
+.dagens-tag { font-size:11px; font-weight:700; color:#aaa; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px; }
+
+/* ── RESPONSIVE ── */
+@media (min-width: 768px) {
+  .auth-card { padding: 3rem; }
+  .recipe-grid { grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); }
+  .search-wrap { max-width: 600px; }
+  .nav-logo { font-size: 24px; }
+  .welcome-text { font-size: 14px; }
+  .recipes-area { padding: 2rem; }
+}
+@media (min-width: 1024px) {
+  .recipe-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+  .search-wrap { max-width: 700px; }
+  .top-nav { padding: 0 2.5rem; }
+  .cat-bar { padding: 14px 2.5rem; }
+  .search-bar { padding: 14px 2.5rem; }
+  .recipes-area { padding: 2rem 2.5rem; }
+}
+@media (min-width: 1280px) {
+  .recipe-grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+}
+@media (max-width: 480px) {
+  .auth-card { padding: 1.75rem 1.5rem; border-radius: 20px; }
+  .auth-logo h1 { font-size: 24px; }
+  .auth-logo .logo-icon { font-size: 40px; }
+  .top-nav { padding: 0 1rem; height: 56px; }
+  .nav-logo { font-size: 18px; }
+  .nav-logo span { display: none; }
+  .welcome-text { display: none; }
+  .nav-btn-logout { font-size: 12px; padding: 6px 10px; }
+  .nav-icon-btn, .fab-add { width: 36px; height: 36px; font-size: 16px; }
+  .nav-right { gap: 6px; }
+  .cat-bar { padding: 10px 1rem; gap: 6px; }
+  .cat-pill { padding: 5px 12px; font-size: 12px; }
+  .search-bar { padding: 10px 1rem; }
+  .search-input { font-size: 13px; padding: 9px 12px 9px 36px; }
+  .recipes-area { padding: 1rem; }
+  .recipe-grid { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .card-body { padding: 0.75rem; }
+  .card-title { font-size: 14px; }
+  .card-img { height: 130px; }
+  .section-title { font-size: 18px; }
+  .modal { border-radius: 20px 20px 0 0; margin: auto 0 0 0; max-width: 100%; max-height: 92vh; overflow-y: auto; }
+  .modal-overlay { padding: 0; align-items: flex-end; }
+  .modal-header { padding: 1rem 1.25rem; }
+  .modal-body { padding: 1.25rem; }
+  .view-title { font-size: 20px; padding: 0.5rem 1.25rem 0; }
+  .view-cat { margin: 0.75rem 1.25rem 0; }
+  .view-author { padding: 0.25rem 1.25rem 0.5rem; }
+  .view-section { padding: 0.75rem 1.25rem 0; }
+  .view-actions { padding: 0.75rem 1.25rem 1.25rem; }
+  .timer-section { padding: 0.75rem 1.25rem 0; }
+  .timer-display { font-size: 34px; }
+  .timer-inputs input { width: 54px; font-size: 14px; }
+  .timer-preset { padding: 4px 10px; font-size: 11px; }
+  .timer-btn { padding: 7px 14px; font-size: 13px; }
+  .settings-row { flex-wrap: wrap; gap: 8px; }
+  #cat-checkboxes { gap: 6px !important; }
+  #cat-checkboxes label { font-size: 12px !important; padding: 5px 10px !important; }
+  .submit-btn { font-size: 15px; padding: 12px; }
+  .form-input { font-size: 13px; padding: 10px 12px; }
+  .form-label { font-size: 12px; }
+  #dagens-section h2 { padding-left: 0 !important; }
+  .section-header { padding: 0 !important; }
+}
+@media (min-width: 481px) and (max-width: 767px) {
+  .recipe-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+  .top-nav { padding: 0 1.25rem; }
+  .welcome-text { max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .modal { border-radius: 20px; max-width: 95%; }
+  .recipes-area { padding: 1.25rem; }
+}
+@media (hover: none) {
+  .recipe-card:hover { transform: none; box-shadow: none; }
+  .auth-btn:hover { transform: none; }
+}
+
+/* ── DARK MODE ── */
+body.dark { background:#1A1208 !important; color:#F5E6D0 !important; }
+body.dark .auth-card { background:#2C1F12 !important; }
+body.dark .auth-form input[type=email],body.dark .auth-form input[type=password],body.dark .auth-form input[type=text] { background:#1A1208 !important; color:#F5E6D0 !important; border-color:#5C3D1E !important; }
+body.dark .top-nav { background: linear-gradient(135deg,#8B2500 0%,#A84000 100%) !important; }
+body.dark .cat-bar,body.dark .search-bar { background:#2C1F12 !important; border-color:#5C3D1E !important; }
+body.dark .cat-pill { background:#2C1F12 !important; color:#FF9855 !important; border-color:#5C3D1E !important; }
+body.dark .cat-pill.active,body.dark .cat-pill:hover { background:#FF6B35 !important; color:#fff !important; }
+body.dark .search-input { background:#1A1208 !important; color:#F5E6D0 !important; border-color:#5C3D1E !important; }
+body.dark .recipes-area { background:#1A1208 !important; }
+body.dark .section-title { color:#F5E6D0 !important; }
+body.dark .recipe-card { background:#2C1F12 !important; border-color:#5C3D1E !important; }
+body.dark .card-title { color:#F5E6D0 !important; }
+body.dark .card-author { color:#887060 !important; }
+body.dark .modal { background:#2C1F12 !important; }
+body.dark .modal-body { background:#2C1F12 !important; }
+body.dark .form-input { background:#1A1208 !important; color:#F5E6D0 !important; border-color:#5C3D1E !important; }
+body.dark .form-label { color:#B08060 !important; }
+body.dark .timer-box { background:#1A1208 !important; border-color:#5C3D1E !important; }
+body.dark .timer-inputs input { background:#2C1F12 !important; color:#F5E6D0 !important; border-color:#5C3D1E !important; }
+body.dark .settings-row-label { color:#F5E6D0 !important; }
+body.dark .settings-row-sub { color:#887060 !important; }
+body.dark .settings-row { border-color:#5C3D1E !important; }
+body.dark .settings-section h3 { border-color:#5C3D1E !important; }
+body.dark .my-recipe-item { background:#1A1208 !important; border-color:#5C3D1E !important; }
+body.dark .my-recipe-item span { color:#F5E6D0 !important; }
+body.dark .ingr-chip { background:#3C2A18 !important; border-color:#5C3D1E !important; color:#F5CBA7 !important; }
+body.dark .view-title { color:#F5E6D0 !important; }
+body.dark .view-instructions { color:#C8A880 !important; }
+body.dark .view-author { border-color:#5C3D1E !important; color:#887060 !important; }
+body.dark .view-section h3 { color:#FF9855 !important; }
+body.dark .timer-section h3 { color:#FF9855 !important; }
+body.dark .add-ingr-btn { background:#3C2A18 !important; border-color:#5C3D1E !important; color:#FF9855 !important; }
+body.dark .img-upload-area { background:#1A1208 !important; border-color:#5C3D1E !important; }
+body.dark .sound-test-btn { background:#3C2A18 !important; border-color:#5C3D1E !important; color:#FF9855 !important; }
+body.dark .timer-preset { background:#3C2A18 !important; border-color:#5C3D1E !important; color:#FF9855 !important; }
+body.dark #cat-checkboxes label { background:#3C2A18 !important; border-color:#5C3D1E !important; color:#F5E6D0 !important; }
+body.dark .cat-lunch { background: #0A3340 !important; color: #7FD8F0 !important; }
+body.dark .cat-middag { background: #4A1020 !important; color: #FFB3C0 !important; }
+body.dark .cat-dessert { background: #2E1445 !important; color: #D4AAFF !important; }
+body.dark .cat-snack { background: #0A3018 !important; color: #80E09A !important; }
+body.dark .cat-dryck { background: #082040 !important; color: #80C8FF !important; }
+body.dark .cat-vegetarisk { background: #0A3015 !important; color: #90EFA0 !important; }
+body.dark .cat-övrigt { background: #3C1E00 !important; color: #FFBB80 !important; }
+
+/* ── FONT SIZE ── */
+body.fs-small { font-size: 13px !important; }
+body.fs-small .card-title { font-size: 15px !important; }
+body.fs-small .view-title { font-size: 22px !important; }
+body.fs-small .view-instructions { font-size: 12px !important; }
+body.fs-small .ingr-chip { font-size: 11px !important; }
+body.fs-small .settings-row-label { font-size: 12px !important; }
+body.fs-small .cat-pill { font-size: 11px !important; }
+body.fs-small p, body.fs-small span, body.fs-small label, body.fs-small div { font-size: inherit; }
+
+body.fs-large { font-size: 17px !important; }
+body.fs-large .card-title { font-size: 20px !important; }
+body.fs-large .view-title { font-size: 30px !important; }
+body.fs-large .view-instructions { font-size: 16px !important; }
+body.fs-large .ingr-chip { font-size: 15px !important; }
+body.fs-large .settings-row-label { font-size: 16px !important; }
+body.fs-large .cat-pill { font-size: 15px !important; }
+body.fs-large .search-input { font-size: 16px !important; }
+
+/* ── FAVORITES ── */
+.fav-btn { position:absolute; top:10px; right:10px; background:rgba(255,255,255,0.9); border:none; border-radius:50%; width:34px; height:34px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:18px; transition:transform 0.15s; box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+.fav-btn:hover { transform:scale(1.2); }
+.recipe-card { position:relative; }
+.fav-tab { display:flex; align-items:center; gap:6px; padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600; cursor:pointer; white-space:nowrap; border:1.5px solid #FFD5C0; background:#fff; color:#FF6B35; transition:all 0.15s; font-family:'Nunito',sans-serif; }
+.fav-tab.active, .fav-tab:hover { background:#FF6B35; color:#fff; border-color:#FF6B35; }
+body.dark .fav-btn { background:rgba(44,31,18,0.9); }
+
+/* ── STAR RATING ── */
+.stars-row { display:flex; gap:4px; padding:0.5rem 1.5rem 0; align-items:center; }
+.star { font-size:24px; cursor:pointer; transition:transform 0.1s; line-height:1; color:#ddd; }
+.star.lit { color:#FFB800; }
+.star:hover { transform:scale(1.2); }
+.rating-avg { font-size:13px; font-weight:700; color:#aaa; margin-left:8px; }
+.card-stars { font-size:13px; margin-top:4px; color:#FFB800; letter-spacing:1px; }
+
+/* ── COMMENTS ── */
+.comments-section { padding:1rem 1.5rem 0; }
+.comments-section h3 { font-size:14px; font-weight:700; color:#FF6B35; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:10px; }
+.comment-list { display:flex; flex-direction:column; gap:10px; margin-bottom:12px; max-height:240px; overflow-y:auto; }
+.comment-item { background:#FFF8F0; border-radius:12px; padding:10px 14px; border:1px solid #FFE8D6; }
+.comment-meta { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.comment-avatar { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; }
+.comment-author { font-size:13px; font-weight:700; color:#2C1810; }
+.comment-date { font-size:11px; color:#bbb; margin-left:auto; }
+.comment-text { font-size:13px; color:#555; line-height:1.5; }
+.comment-form { display:flex; gap:8px; align-items:flex-start; }
+.comment-form textarea { flex:1; padding:10px 12px; border:1.5px solid #FFD5C0; border-radius:12px; font-family:'Nunito',sans-serif; font-size:13px; resize:none; height:60px; outline:none; background:#FFFAF7; color:#2C1810; }
+.comment-form textarea:focus { border-color:#FF6B35; }
+.comment-submit { padding:8px 16px; background:linear-gradient(135deg,#FF6B35,#F7931E); color:#fff; border:none; border-radius:10px; font-family:'Nunito',sans-serif; font-size:13px; font-weight:700; cursor:pointer; white-space:nowrap; }
+.comment-own-del { background:none; border:none; color:#ccc; cursor:pointer; font-size:14px; margin-left:4px; }
+.comment-own-del:hover { color:#E24B4A; }
+
+/* ── AVATAR ── */
+.avatar-circle { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:18px; font-weight:700; color:#fff; flex-shrink:0; cursor:pointer; transition:transform 0.15s; }
+.avatar-circle:hover { transform:scale(1.05); }
+.avatar-circle img { width:100%; height:100%; border-radius:50%; object-fit:cover; }
+.avatar-upload-wrap { position:relative; display:inline-block; }
+.avatar-upload-wrap input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; }
+
+/* ── SHARE ── */
+.share-btn { padding:10px 18px; background:#FFF0E8; border:1px solid #FFD5C0; border-radius:10px; color:#FF6B35; font-family:'Nunito',sans-serif; font-size:13px; font-weight:700; cursor:pointer; }
+.share-btn:hover { background:#FFE0CC; }
+.share-toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); background:#2C1810; color:#fff; padding:10px 20px; border-radius:20px; font-size:13px; font-weight:600; z-index:9999; opacity:0; transition:opacity 0.3s; pointer-events:none; }
+.share-toast.show { opacity:1; }
+
+/* ── PROFILE MODAL ── */
+.profile-header { padding:1.5rem; display:flex; align-items:center; gap:16px; border-bottom:1px solid #FFE8D6; }
+.profile-name { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:#2C1810; }
+.profile-sub { font-size:13px; color:#aaa; margin-top:2px; }
+.profile-recipes { padding:1.5rem; }
+.profile-recipes h3 { font-size:14px; font-weight:700; color:#FF6B35; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:12px; }
+.profile-recipe-row { display:flex; align-items:center; gap:12px; padding:10px 0; border-bottom:1px solid #FFF0E8; cursor:pointer; }
+.profile-recipe-row:last-child { border-bottom:none; }
+.profile-recipe-row:hover .profile-recipe-title { color:#FF6B35; }
+.profile-recipe-title { font-size:14px; font-weight:600; color:#2C1810; flex:1; }
+.profile-recipe-stars { font-size:12px; color:#FFB800; }
+
+/* DARK MODE extras */
+body.dark .comment-item { background:#1A1208 !important; border-color:#5C3D1E !important; }
+body.dark .comment-text { color:#C8A880 !important; }
+body.dark .comment-author { color:#F5E6D0 !important; }
+body.dark .comment-form textarea { background:#1A1208 !important; color:#F5E6D0 !important; border-color:#5C3D1E !important; }
+body.dark .share-btn { background:#3C2A18 !important; border-color:#5C3D1E !important; }
+body.dark .profile-name { color:#F5E6D0 !important; }
+body.dark .profile-recipe-title { color:#F5E6D0 !important; }
+body.dark .profile-header { border-color:#5C3D1E !important; }
+body.dark .profile-recipe-row { border-color:#5C3D1E !important; }
+</style>
+</head>
+<body>
+<div id="app">
+<div class="share-toast" id="share-toast">🔗 Länk kopierad!</div>
+
+<!-- AUTH PAGE -->
+<div id="auth-page" class="page active">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <span class="logo-icon">🍽️</span>
+      <h1>Receptboken</h1>
+      <p>Dela dina bästa recept med världen</p>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab active" onclick="switchTab('login')">Logga in</button>
+      <button class="auth-tab" onclick="switchTab('register')">Skapa konto</button>
+    </div>
+    <div class="auth-form">
+      <div id="register-fields" style="display:none">
+        <input type="text" id="reg-display" placeholder="Ditt visningsnamn (syns på recept)" maxlength="20">
+      </div>
+      <input type="email" id="auth-user" placeholder="E-postadress">
+      <input type="password" id="auth-pass" placeholder="Lösenord">
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:#555;margin-bottom:12px;cursor:pointer;" id="remember-wrap">
+        <input type="checkbox" id="remember-me" style="width:auto;margin:0;accent-color:#FF6B35;"> Kom ihåg mig
+      </label>
+      <button class="auth-btn" id="auth-main-btn" onclick="handleAuth()">Logga in</button>
+      <div class="auth-error" id="auth-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN PAGE -->
+<div id="main-page" class="page">
+  <nav class="top-nav">
+    <div class="nav-logo">🍽️ Receptboken</div>
+    <div class="nav-right">
+      <div class="avatar-circle" id="nav-avatar" onclick="openOwnProfile()" style="background:#FF6B35;width:36px;height:36px;font-size:15px;"></div><span class="welcome-text" id="welcome-text"></span>
+      <button class="fab-add hidden" id="fab-add" onclick="openAddModal()" title="Lägg till recept">+</button>
+      <button class="nav-icon-btn" id="fav-nav-btn" onclick="toggleFavNav()" title="Favoriter" style="font-size:20px;">🤍</button>
+      <button class="nav-icon-btn" onclick="openModal('settings-modal')" title="Inställningar">⚙️</button>
+      <button class="nav-btn-logout" onclick="logout()">Logga ut</button>
+    </div>
+  </nav>
+  <div class="cat-bar">
+    <button class="cat-pill active" id="pill-all" onclick="filterCat('Alla',this)">Alla</button>
+    <button class="cat-pill" id="pill-frukost" onclick="filterCat('Frukost',this)">🥞 Frukost</button>
+    <button class="cat-pill" id="pill-lunch" onclick="filterCat('Lunch',this)">🥗 Lunch</button>
+    <button class="cat-pill" id="pill-middag" onclick="filterCat('Middag',this)">🍝 Middag</button>
+    <button class="cat-pill" id="pill-dessert" onclick="filterCat('Dessert',this)">🍰 Dessert</button>
+    <button class="cat-pill" id="pill-veg" onclick="filterCat('Vegetarisk',this)">🥦 Vegetarisk</button>
+    <button class="cat-pill" id="pill-snack" onclick="filterCat('Snack',this)">🍿 Snack</button>
+    <button class="cat-pill" id="pill-dryck" onclick="filterCat('Dryck',this)">🥤 Dryck</button>
+    <button class="cat-pill" id="pill-ovrigt" onclick="filterCat('Övrigt',this)">✨ Övrigt</button>
+  </div>
+  <div class="search-bar">
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" class="search-input" id="search-input" placeholder="Sök på recept, ingrediens eller kategori..." oninput="onSearch(this)">
+      <button class="search-clear" id="search-clear" onclick="clearSearch()">✕</button>
+    </div>
+  </div>
+  
+  <div class="recipes-area">
+
+    <!-- DAGENS RECEPT -->
+    <div id="dagens-section" style="margin-bottom:1.5rem;">
+      <h2 class="section-title" style="margin-bottom:1rem; padding-left:1.5rem;">🌟 Dagens recept</h2>
+      <div id="dagens-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem;padding:0 1.5rem;"></div>
+    </div>
+
+    <div class="section-header" style="padding:0 1.5rem;">
+      <h2 class="section-title">Alla recept</h2>
+      <span class="recipe-count" id="recipe-count">Laddar...</span>
+    </div>
+    <div id="recipe-grid" class="recipe-grid" style="display:none"></div>
+    <div id="loading-state" class="loading-spinner"><div class="spinner"></div><p>Hämtar recept...</p></div>
+    <div id="empty-state" class="empty-state" style="display:none">
+      <div class="empty-icon">🥘</div>
+      <h3>Inga recept ännu</h3>
+      <p>Var den första att lägga till ett recept!</p>
+
+    </div>
+  </div>
+</div>
+
+<!-- ADD RECIPE MODAL -->
+<div class="modal-overlay" id="add-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Nytt recept</h2>
+      <button class="modal-close" onclick="closeModal('add-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Receptets titel *</label>
+        <input type="text" class="form-input" id="r-title" placeholder="T.ex. Mormors köttbullar">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Kategorier * (välj en eller flera)</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;" id="cat-checkboxes">
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;background:#FFF0E8;padding:6px 12px;border-radius:20px;border:1.5px solid #FFD5C0;"><input type="checkbox" value="Frukost" style="width:auto;accent-color:#FF6B35;"> 🥞 Frukost</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;background:#FFF0E8;padding:6px 12px;border-radius:20px;border:1.5px solid #FFD5C0;"><input type="checkbox" value="Lunch" style="width:auto;accent-color:#FF6B35;"> 🥗 Lunch</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;background:#FFF0E8;padding:6px 12px;border-radius:20px;border:1.5px solid #FFD5C0;"><input type="checkbox" value="Middag" style="width:auto;accent-color:#FF6B35;"> 🍝 Middag</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;background:#FFF0E8;padding:6px 12px;border-radius:20px;border:1.5px solid #FFD5C0;"><input type="checkbox" value="Dessert" style="width:auto;accent-color:#FF6B35;"> 🍰 Dessert</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;background:#FFF0E8;padding:6px 12px;border-radius:20px;border:1.5px solid #FFD5C0;"><input type="checkbox" value="Vegetarisk" style="width:auto;accent-color:#FF6B35;"> 🥦 Vegetarisk</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;background:#FFF0E8;padding:6px 12px;border-radius:20px;border:1.5px solid #FFD5C0;"><input type="checkbox" value="Snack" style="width:auto;accent-color:#FF6B35;"> 🍿 Snack</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;background:#FFF0E8;padding:6px 12px;border-radius:20px;border:1.5px solid #FFD5C0;"><input type="checkbox" value="Dryck" style="width:auto;accent-color:#FF6B35;"> 🥤 Dryck</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;font-weight:600;cursor:pointer;background:#FFF0E8;padding:6px 12px;border-radius:20px;border:1.5px solid #FFD5C0;"><input type="checkbox" value="Övrigt" style="width:auto;accent-color:#FF6B35;"> ✨ Övrigt</label>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Bild (valfritt)</label>
+        <div class="img-upload-area">
+          <input type="file" accept="image/*" id="r-img" onchange="previewImg(this)">
+          <img class="img-preview" id="img-preview" alt="">
+          <div class="upload-placeholder" id="upload-placeholder">
+            <span class="up-icon">📷</span>
+            <p>Klicka för att ladda upp en bild</p>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Antal portioner</label>
+        <input type="number" class="form-input" id="r-servings" placeholder="T.ex. 4" min="1" max="100" style="width:120px;">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Ingredienser *</label>
+        <div class="ingr-list" id="ingr-list"></div>
+        <button class="add-ingr-btn" onclick="addIngrRow()">+ Lägg till ingrediens</button>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Gör så här *</label>
+        <textarea class="form-input" id="r-instructions" placeholder="Beskriv steg för steg hur receptet tillagas..."></textarea>
+      </div>
+      <button class="submit-btn" id="submit-btn" onclick="submitRecipe()">Publicera recept</button>
+      <div class="form-error" id="recipe-error"></div>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW RECIPE MODAL -->
+<div class="modal-overlay" id="view-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Recept</h2>
+      <button class="modal-close" onclick="closeModal('view-modal')">✕</button>
+    </div>
+    <div id="view-illustration" style="width:100%;height:220px;overflow:hidden;display:block;"></div>
+    <div class="view-cat" id="view-cat"></div>
+    <div class="view-title" id="view-title"></div>
+    <div class="view-author" id="view-author"></div>
+    <div class="view-section"><h3 id="view-h-ingr">Ingredienser</h3>
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <span id="view-portions-label" style="font-size:13px;color:#aaa;font-weight:600;">Portioner:</span>
+        <button onclick="changeServings(-1)" style="width:28px;height:28px;border-radius:50%;border:1.5px solid #FFD5C0;background:#FFF0E8;color:#FF6B35;font-size:16px;cursor:pointer;font-weight:700;line-height:1;">−</button>
+        <span id="view-servings" style="font-size:16px;font-weight:700;color:#FF6B35;min-width:24px;text-align:center;">4</span>
+        <button onclick="changeServings(1)" style="width:28px;height:28px;border-radius:50%;border:1.5px solid #FFD5C0;background:#FFF0E8;color:#FF6B35;font-size:16px;cursor:pointer;font-weight:700;line-height:1;">+</button>
+      </div>
+      <div class="ingr-chips" id="view-ingr"></div>
+    </div>
+    <div class="view-section" style="margin-bottom:0"><h3 id="view-h-instr">Gör så här</h3><div class="view-instructions" id="view-instr"></div></div>
+
+    <!-- TIMER -->
+    <div class="timer-section">
+      <h3 id="view-h-timer">⏱️ Timer</h3>
+      <div class="timer-box">
+        <div class="timer-display" id="timer-display">00:00:00</div>
+        <div class="timer-presets">
+          <button class="timer-preset" onclick="setPreset(5)">5 min</button>
+          <button class="timer-preset" onclick="setPreset(10)">10 min</button>
+          <button class="timer-preset" onclick="setPreset(15)">15 min</button>
+          <button class="timer-preset" onclick="setPreset(20)">20 min</button>
+          <button class="timer-preset" onclick="setPreset(30)">30 min</button>
+          <button class="timer-preset" onclick="setPreset(60)">1 tim</button>
+        </div>
+        <div class="timer-label"><span id="timer-lh">Tim</span><span id="timer-lm">Min</span><span id="timer-ls">Sek</span></div>
+        <div class="timer-inputs">
+          <input type="number" id="t-h" value="0" min="0" max="23" oninput="updateTimerDisplay()">
+          <span class="timer-sep">:</span>
+          <input type="number" id="t-m" value="0" min="0" max="59" oninput="updateTimerDisplay()">
+          <span class="timer-sep">:</span>
+          <input type="number" id="t-s" value="0" min="0" max="59" oninput="updateTimerDisplay()">
+        </div>
+        <div class="timer-btns">
+          <button class="timer-btn start" id="timer-start-btn" onclick="startTimer()">▶ Start</button>
+          <button class="timer-btn pause" id="timer-pause-btn" onclick="pauseTimer()" style="display:none">⏸ Paus</button>
+          <button class="timer-btn reset" id="timer-reset-btn" onclick="resetTimer()">↺ Återställ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RATING -->
+    <div class="stars-row" id="stars-row">
+      <span class="star" onclick="rateRecipe(1)" id="s1">★</span>
+      <span class="star" onclick="rateRecipe(2)" id="s2">★</span>
+      <span class="star" onclick="rateRecipe(3)" id="s3">★</span>
+      <span class="star" onclick="rateRecipe(4)" id="s4">★</span>
+      <span class="star" onclick="rateRecipe(5)" id="s5">★</span>
+      <span class="rating-avg" id="rating-avg"></span>
+      <button id="remove-rating-btn" onclick="removeRating()" style="display:none;margin-left:8px;background:none;border:none;color:#ccc;cursor:pointer;font-size:12px;font-family:'Nunito',sans-serif;font-weight:600;" title="Ta bort ditt betyg">✕ Ta bort</button>
+    </div>
+
+    <!-- COMMENTS -->
+    <div class="comments-section">
+      <h3>💬 Kommentarer</h3>
+      <div class="comment-list" id="comment-list"></div>
+      <div class="comment-form">
+        <textarea id="comment-input" placeholder="Skriv en kommentar..."></textarea>
+        <button class="comment-submit" onclick="submitComment()">Skicka</button>
+      </div>
+    </div>
+
+    <div class="view-actions">
+      <button class="share-btn" onclick="shareRecipe()">🔗 Dela recept</button>
+      <button class="delete-btn" id="delete-btn" style="display:none" onclick="deleteCurrentRecipe()">🗑️ Ta bort recept</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROFILE MODAL -->
+<div class="modal-overlay" id="profile-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Profil</h2>
+      <button class="modal-close" onclick="closeModal('profile-modal')">✕</button>
+    </div>
+    <div class="profile-header">
+      <div class="avatar-circle" id="profile-modal-avatar" style="background:#FF6B35;font-size:22px;width:60px;height:60px;"></div>
+      <div>
+        <div class="profile-name" id="profile-modal-name"></div>
+        <div class="profile-sub" id="profile-modal-sub"></div>
+      </div>
+    </div>
+    <div class="profile-recipes">
+      <h3>Recept</h3>
+      <div id="profile-modal-recipes"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="modal-overlay" id="settings-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="s-title">Inställningar</h2>
+      <button class="modal-close" onclick="closeModal('settings-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="settings-section">
+        <h3 id="s-appearance">🎨 Utseende</h3>
+        <div class="settings-row">
+          <div><div class="settings-row-label" id="s-dark">Mörkt läge</div><div class="settings-row-sub" id="s-dark-sub">Skonsamt för ögonen</div></div>
+          <label class="toggle"><input type="checkbox" id="setting-dark" onchange="applyDarkMode()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-row" style="border:none;">
+          <div><div class="settings-row-label" id="s-textsize">Textstorlek</div></div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <button class="sound-test-btn" onclick="setFontSize('small')" id="fs-small" style="font-size:11px;">A</button>
+            <button class="sound-test-btn" onclick="setFontSize('medium')" id="fs-medium" style="font-size:14px;">A</button>
+            <button class="sound-test-btn" onclick="setFontSize('large')" id="fs-large" style="font-size:18px;">A</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3 id="s-account">👤 Konto</h3>
+        <div class="settings-row">
+          <div style="display:flex;align-items:center;gap:12px;">
+          <div class="avatar-upload-wrap">
+            <div class="avatar-circle" id="settings-avatar" style="background:#FF6B35;width:52px;height:52px;font-size:22px;"></div>
+            <input type="file" accept="image/*" onchange="uploadAvatar(this)" title="Byt profilbild">
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;margin-top:4px;">
+            <span style="font-size:10px;color:#aaa;font-weight:600;">Byt profilbild</span>
+          </div>
+          <div>
+            <div class="settings-row-label" id="s-loggedas">Inloggad som</div>
+            <div class="settings-row-sub" id="account-name-label"></div>
+          </div>
+        </div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-row-label" id="s-changename">Byt visningsnamn</div></div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            <input type="text" id="new-display-name" class="form-input" placeholder="Nytt namn" style="width:130px;padding:7px 10px;">
+            <button class="sound-test-btn" id="s-savename-btn" onclick="changeDisplayName()">Spara</button>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-row-label" id="s-changepass">Byt lösenord</div></div>
+          <button class="sound-test-btn" id="s-changepass-btn" onclick="toggleChangePassword()">Ändra</button>
+        </div>
+        <div id="change-password-form" style="display:none;padding:10px 0;">
+          <input type="password" id="cur-pass" class="form-input" placeholder="Nuvarande lösenord" style="margin-bottom:8px;">
+          <input type="password" id="new-pass" class="form-input" placeholder="Nytt lösenord" style="margin-bottom:8px;">
+          <input type="password" id="new-pass2" class="form-input" placeholder="Bekräfta nytt lösenord" style="margin-bottom:8px;">
+          <button class="sound-test-btn" id="s-savepass-btn" onclick="saveNewPassword()" style="width:100%;text-align:center;">Spara nytt lösenord</button>
+          <div id="pass-change-msg" style="font-size:12px;margin-top:6px;text-align:center;min-height:16px;"></div>
+        </div>
+        <div class="settings-row" style="border:none;">
+          <div><div class="settings-row-label" id="s-deleteacc">Radera konto</div><div class="settings-row-sub" id="s-deleteacc-sub">Tar bort konto och dina recept</div></div>
+          <button class="sound-test-btn" id="s-deleteacc-btn" onclick="deleteAccount()" style="background:#FFE8E8;border-color:#FFBBBB;color:#E24B4A;">Radera</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3 id="s-recipes">📚 Recept</h3>
+        <div class="settings-row">
+          <div><div class="settings-row-label" id="s-showseed">Visa Claudes exempelrecept</div><div class="settings-row-sub" id="s-showseed-sub">Dölj eller visa de inbyggda recepten</div></div>
+          <label class="toggle"><input type="checkbox" id="setting-show-seed" checked onchange="saveSettings();renderRecipes()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-row-label" id="s-reseed">Återställ exempelrecept</div><div class="settings-row-sub" id="s-reseed-sub">Lägger tillbaka Claudes recept</div></div>
+          <button class="sound-test-btn" id="s-reseed-btn" onclick="reseedRecipes()">Återställ</button>
+        </div>
+        <div class="settings-row" style="border:none;align-items:flex-start;flex-direction:column;gap:10px;">
+          <div><div class="settings-row-label" id="s-myrecipes">Hantera mina recept</div><div class="settings-row-sub" id="s-myrecipes-sub">Radera ett eller alla dina egna recept</div></div>
+          <div id="my-recipes-list" style="width:100%;"></div>
+          <button class="sound-test-btn" id="delete-all-mine-btn" onclick="deleteAllMyRecipes()" style="background:#FFE8E8;border-color:#FFBBBB;color:#E24B4A;display:none;">🗑️ <span id="s-deleteallmine">Radera alla mina recept</span></button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3 id="s-timersound">🔔 Timerljud</h3>
+        <div class="settings-row">
+          <div><div class="settings-row-label" id="s-timeron">Aktivera timerljud</div><div class="settings-row-sub" id="s-timeron-sub">Spelar ett ljud när timern är klar</div></div>
+          <label class="toggle"><input type="checkbox" id="setting-sound" checked onchange="saveSettings()"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-row-label" id="s-volume">Volym</div></div>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <input type="range" class="volume-slider" id="setting-volume" min="0" max="100" value="80" oninput="saveSettings()">
+            <span id="volume-label" style="font-size:13px;font-weight:700;color:#FF6B35;min-width:30px;">80%</span>
+          </div>
+        </div>
+        <div class="settings-row">
+          <div><div class="settings-row-label" id="s-soundtype">Ljudtyp</div></div>
+          <select class="form-input" id="setting-sound-type" onchange="saveSettings()" style="width:auto;padding:6px 10px;">
+            <option value="ding" id="s-opt-ding">Ding 🔔</option>
+            <option value="beep" id="s-opt-beep">Beep 📣</option>
+            <option value="bell" id="s-opt-bell">Klocka 🎵</option>
+          </select>
+        </div>
+        <div class="settings-row" style="border:none;">
+          <div><div class="settings-row-label" id="s-testsound">Testa ljud</div></div>
+          <button class="sound-test-btn" id="s-testsound-btn" onclick="playAlarm()">▶ Spela</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3 id="s-notif">🔔 Aviseringar</h3>
+        <div class="settings-row" style="border:none;">
+          <div><div class="settings-row-label" id="s-notif-label">Webbläsaravisering</div><div class="settings-row-sub" id="s-notif-sub">Notis även när fliken är minimerad</div></div>
+          <label class="toggle"><input type="checkbox" id="setting-notify" onchange="toggleNotify()"><span class="toggle-slider"></span></label>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3 id="s-fav-title">❤️ Favoriter</h3>
+        <div class="settings-row">
+          <div><div class="settings-row-label" id="s-fav-label">Visa bara favoriter</div><div class="settings-row-sub" id="s-fav-sub">Filtrera på dina sparade recept</div></div>
+          <label class="toggle"><input type="checkbox" id="setting-fav-only" onchange="toggleFavFilter(null)"><span class="toggle-slider"></span></label>
+        </div>
+        <div class="settings-row" style="border:none;">
+          <div><div class="settings-row-label" id="s-fav-open">Öppna favoriter</div></div>
+          <button class="sound-test-btn" id="s-fav-btn" onclick="closeModal('settings-modal');toggleFavFilter({checked:true})">❤️ <span id="s-fav-btn-text">Se favoriter</span></button>
+        </div>
+      </div>
+
+      <div class="settings-section" style="margin-bottom:0">
+        <h3>🌍 Språk</h3>
+        <div class="settings-row" style="border:none;">
+          <div>
+            <div class="settings-row-label">Svenska</div>
+            <div class="settings-row-sub">Fler språk kommer snart!</div>
+          </div>
+          <span style="font-size:20px;">🇸🇪</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+const OWNER = "admin@receptboken.se";
+const OWNER_PASS = "recept123";
+const catEmoji = {Frukost:'🥞',Lunch:'🥗',Middag:'🍝',Dessert:'🍰',Vegetarisk:'🥦',Snack:'🍿',Dryck:'🥤',Övrigt:'✨'};
+
+let currentUser = null;
+let currentTab = 'login';
+let currentCat = 'Alla';
+let searchQuery = '';
+let viewingId = null;
+let allRecipes = [];
+
+// ── TIMER STATE ──
+let timerInterval = null;
+let timerRemaining = 0;
+let timerRunning = false;
+
+// ── SETTINGS ──
+let settings = { sound: true, volume: 80, soundType: 'ding', notify: false, dark: false, fontSize: 'medium', showSeed: true };
+
+function loadSettings() {
+  try { const s = JSON.parse(localStorage.getItem('receptboken_settings') || 'null'); if(s) settings = {...settings, ...s}; } catch {}
+  document.getElementById('setting-sound').checked = settings.sound;
+  document.getElementById('setting-volume').value = settings.volume;
+  document.getElementById('volume-label').textContent = settings.volume + '%';
+  document.getElementById('setting-sound-type').value = settings.soundType;
+  document.getElementById('setting-notify').checked = settings.notify;
+  document.getElementById('setting-dark').checked = settings.dark;
+  document.getElementById('setting-show-seed').checked = settings.showSeed !== false;
+  if (settings.dark) document.body.classList.add('dark');
+  applyFontSize(settings.fontSize, false);
+}
+
+function saveSettings() {
+  settings.sound = document.getElementById('setting-sound').checked;
+  settings.volume = parseInt(document.getElementById('setting-volume').value);
+  settings.soundType = document.getElementById('setting-sound-type').value;
+  settings.showSeed = document.getElementById('setting-show-seed').checked;
+  document.getElementById('volume-label').textContent = settings.volume + '%';
+  try { localStorage.setItem('receptboken_settings', JSON.stringify(settings)); } catch {}
+}
+
+function applyDarkMode() {
+  settings.dark = document.getElementById('setting-dark').checked;
+  document.body.classList.toggle('dark', settings.dark);
+  try { localStorage.setItem('receptboken_settings', JSON.stringify(settings)); } catch {}
+}
+
+function setFontSize(size) {
+  settings.fontSize = size;
+  applyFontSize(size, true);
+  try { localStorage.setItem('receptboken_settings', JSON.stringify(settings)); } catch {}
+}
+
+function applyFontSize(size, save) {
+  document.body.classList.remove('fs-small', 'fs-large');
+  if (size === 'small') document.body.classList.add('fs-small');
+  if (size === 'large') document.body.classList.add('fs-large');
+  ['fs-small','fs-medium','fs-large'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.style.outline = (id === 'fs-' + size) ? '2px solid #FF6B35' : 'none';
+  });
+}
+
+// ── SERVINGS ──
+let currentServings = 4;
+let baseServings = 4;
+let baseIngredients = [];
+
+function changeServings(delta) {
+  currentServings = Math.max(1, currentServings + delta);
+  document.getElementById('view-servings').textContent = currentServings;
+  renderIngredients();
+}
+
+function renderIngredients() {
+  const ratio = baseServings > 0 ? currentServings / baseServings : 1;
+  const el = document.getElementById('view-ingr');
+  if (!el) return;
+  el.innerHTML = baseIngredients.map(ing => {
+    const scaled = scaleIngredient(ing, ratio);
+    return `<span class="ingr-chip">${scaled}</span>`;
+  }).join('');
+}
+
+function scaleIngredient(ing, ratio) {
+  if (ratio === 1) return ing;
+  return ing.replace(/(\d+([.,]\d+)?)/g, (match) => {
+    const num = parseFloat(match.replace(',', '.'));
+    const scaled = num * ratio;
+    const result = scaled % 1 === 0 ? scaled.toFixed(0) : (Math.round(scaled * 4) / 4).toFixed(2).replace(/\.?0+$/, '');
+    return result;
+  });
+}
+
+// ── ACCOUNT SETTINGS ──
+function changeDisplayName() {
+  if (!currentUser) return;
+  const newName = document.getElementById('new-display-name').value.trim();
+  if (!newName || newName.length < 2) { alert('Ange ett namn med minst 2 tecken.'); return; }
+  if (currentUser.email === OWNER) {
+    currentUser.name = newName;
+    document.getElementById('welcome-text').textContent = 'Välkommen, ' + newName + '!';
+    document.getElementById('account-name-label').textContent = newName;
+    document.getElementById('new-display-name').value = '';
+    alert(t('nameUpdated'));
+    return;
+  }
+  const users = getUsers();
+  if (!users[currentUser.email]) { alert('Kontot hittades inte.'); return; }
+  users[currentUser.email].display = newName;
+  saveUsers(users);
+  currentUser.name = newName;
+  document.getElementById('welcome-text').textContent = 'Välkommen, ' + newName + '!';
+  document.getElementById('account-name-label').textContent = newName;
+  document.getElementById('new-display-name').value = '';
+  alert(t('nameUpdated'));
+}
+
+function toggleChangePassword() {
+  const form = document.getElementById('change-password-form');
+  form.style.display = form.style.display === 'none' ? 'block' : 'none';
+}
+
+function saveNewPassword() {
+  if (currentUser.email === OWNER) { alert('Admin-lösenordet kan inte ändras här.'); return; }
+  const cur = document.getElementById('cur-pass').value;
+  const nw = document.getElementById('new-pass').value;
+  const nw2 = document.getElementById('new-pass2').value;
+  const msg = document.getElementById('pass-change-msg');
+  const users = getUsers();
+  if (!users[currentUser.email] || users[currentUser.email].pass !== cur) { msg.style.color='#E24B4A'; msg.textContent=t('passWrongCur'); return; }
+  if (nw.length < 4) { msg.style.color='#E24B4A'; msg.textContent=t('passTooShort'); return; }
+  if (nw !== nw2) { msg.style.color='#E24B4A'; msg.textContent=t('passMismatch'); return; }
+  users[currentUser.email].pass = nw;
+  saveUsers(users);
+  setSavedLogin({ email: currentUser.email, pass: nw });
+  msg.style.color='#27ae60'; msg.textContent=t('passChanged');
+  document.getElementById('cur-pass').value='';
+  document.getElementById('new-pass').value='';
+  document.getElementById('new-pass2').value='';
+}
+
+function deleteAccount() {
+  if (currentUser.email === OWNER) { alert('Admin-kontot kan inte raderas.'); return; }
+  if (!confirm(t('confirmDelete'))) return;
+  const users = getUsers();
+  delete users[currentUser.email];
+  saveUsers(users);
+  const recipes = getRecipes().filter(r => r.author !== currentUser.name);
+  saveRecipes(recipes);
+  clearSavedLogin();
+  logout();
+}
+
+function toggleNotify() {
+  if (document.getElementById('setting-notify').checked) {
+    Notification.requestPermission().then(p => {
+      if (p !== 'granted') { document.getElementById('setting-notify').checked = false; alert('Tillåt aviseringar i webbläsaren för att aktivera detta.'); }
+      else { settings.notify = true; saveSettings(); }
+    });
+  } else { settings.notify = false; saveSettings(); }
+}
+
+// ── AUDIO ──
+function playAlarm() {
+  if (!settings.sound) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const vol = settings.volume / 100;
+    const type = settings.soundType;
+    const gain = ctx.createGain();
+    gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+
+    if (type === 'ding') {
+      [0, 0.3, 0.6].forEach(t => {
+        const o = ctx.createOscillator();
+        o.connect(gain);
+        o.type = 'sine';
+        o.frequency.setValueAtTime(880, ctx.currentTime + t);
+        o.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + t + 0.4);
+        gain.gain.setValueAtTime(vol, ctx.currentTime + t);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + t + 0.5);
+        o.start(ctx.currentTime + t);
+        o.stop(ctx.currentTime + t + 0.5);
+      });
+    } else if (type === 'beep') {
+      [0, 0.25, 0.5, 0.75].forEach(t => {
+        const o = ctx.createOscillator();
+        o.connect(gain);
+        o.type = 'square';
+        o.frequency.value = 1000;
+        gain.gain.setValueAtTime(vol * 0.3, ctx.currentTime + t);
+        gain.gain.setValueAtTime(0.001, ctx.currentTime + t + 0.15);
+        o.start(ctx.currentTime + t);
+        o.stop(ctx.currentTime + t + 0.15);
+      });
+    } else {
+      const freqs = [523, 659, 784, 1047];
+      freqs.forEach((f, i) => {
+        const o = ctx.createOscillator();
+        o.connect(gain);
+        o.type = 'triangle';
+        o.frequency.value = f;
+        gain.gain.setValueAtTime(vol, ctx.currentTime + i * 0.18);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + i * 0.18 + 0.4);
+        o.start(ctx.currentTime + i * 0.18);
+        o.stop(ctx.currentTime + i * 0.18 + 0.4);
+      });
+    }
+  } catch(e) {}
+}
+
+// ── TIMER ──
+function padZ(n) { return String(n).padStart(2,'0'); }
+
+function updateTimerDisplay() {
+  const h = parseInt(document.getElementById('t-h').value)||0;
+  const m = parseInt(document.getElementById('t-m').value)||0;
+  const s = parseInt(document.getElementById('t-s').value)||0;
+  const el = document.getElementById('timer-display');
+  el.textContent = padZ(h)+':'+padZ(m)+':'+padZ(s);
+  el.className = 'timer-display';
+}
+
+function setPreset(minutes) {
+  resetTimer();
+  document.getElementById('t-h').value = Math.floor(minutes / 60);
+  document.getElementById('t-m').value = minutes % 60;
+  document.getElementById('t-s').value = 0;
+  updateTimerDisplay();
+}
+
+function startTimer() {
+  const h = parseInt(document.getElementById('t-h').value)||0;
+  const m = parseInt(document.getElementById('t-m').value)||0;
+  const s = parseInt(document.getElementById('t-s').value)||0;
+  if (!timerRunning) {
+    if (timerRemaining === 0) timerRemaining = h*3600 + m*60 + s;
+    if (timerRemaining <= 0) return;
+  }
+  timerRunning = true;
+  document.getElementById('timer-start-btn').style.display = 'none';
+  document.getElementById('timer-pause-btn').style.display = '';
+  document.getElementById('timer-display').className = 'timer-display running';
+  timerInterval = setInterval(() => {
+    timerRemaining--;
+    const rh = Math.floor(timerRemaining/3600);
+    const rm = Math.floor((timerRemaining%3600)/60);
+    const rs = timerRemaining%60;
+    document.getElementById('timer-display').textContent = padZ(rh)+':'+padZ(rm)+':'+padZ(rs);
+    if (timerRemaining <= 0) {
+      clearInterval(timerInterval);
+      timerRunning = false;
+      document.getElementById('timer-display').className = 'timer-display done';
+      document.getElementById('timer-display').textContent = '00:00:00';
+      document.getElementById('timer-start-btn').style.display = '';
+      document.getElementById('timer-pause-btn').style.display = 'none';
+      playAlarm();
+      if (settings.notify && Notification.permission === 'granted') {
+        new Notification('⏱️ Timern är klar!', { body: 'Din timer i Receptboken är klar.' });
+      }
+    }
+  }, 1000);
+}
+
+function pauseTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  document.getElementById('timer-start-btn').style.display = '';
+  document.getElementById('timer-start-btn').textContent = '▶ Fortsätt';
+  document.getElementById('timer-pause-btn').style.display = 'none';
+  document.getElementById('timer-display').className = 'timer-display';
+}
+
+function resetTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  timerRemaining = 0;
+  document.getElementById('t-h').value = 0;
+  document.getElementById('t-m').value = 0;
+  document.getElementById('t-s').value = 0;
+  document.getElementById('timer-display').textContent = '00:00:00';
+  document.getElementById('timer-display').className = 'timer-display';
+  document.getElementById('timer-start-btn').style.display = '';
+  document.getElementById('timer-start-btn').textContent = '▶ Start';
+  document.getElementById('timer-pause-btn').style.display = 'none';
+}
+
+// ── STORAGE ──
+function getRecipes() { try { return JSON.parse(localStorage.getItem('receptboken_recipes')||'[]'); } catch { return []; } }
+function saveRecipes(r) { try { localStorage.setItem('receptboken_recipes', JSON.stringify(r)); } catch {} }
+function getUsers() { try { return JSON.parse(localStorage.getItem('receptboken_users')||'{}'); } catch { return {}; } }
+function saveUsers(u) { try { localStorage.setItem('receptboken_users', JSON.stringify(u)); } catch {} }
+function getSavedLogin() { try { return JSON.parse(localStorage.getItem('receptboken_saved')||'null'); } catch { return null; } }
+function setSavedLogin(d) { try { localStorage.setItem('receptboken_saved', JSON.stringify(d)); } catch {} }
+function clearSavedLogin() { try { localStorage.removeItem('receptboken_saved'); } catch {} }
+
+// ── SEED RECIPES ──
+const SEED_RECIPES = [
+  { id:'seed1', title:'Klassiska svenska köttbullar', cats:['Middag'], author:'Claude', ingr:['500g nötfärs','1 lök','1 ägg','2 msk ströbröd','1 dl mjölk','Salt och peppar','Smör till stekning'], instructions:'1. Finhacka löken och fräs mjuk i smör.\n2. Blanda färs, lök, ägg, ströbröd och mjölk. Salta och peppra.\n3. Rulla till jämna bollar.\n4. Stek i smör tills gyllenbruna runt om, ca 8–10 min.\n5. Servera med potatismos, gräddsås och lingonsylt.', created:1000 },
+  { id:'seed2', title:'Pasta Carbonara', cats:['Middag'], author:'Claude', ingr:['400g spaghetti','150g pancetta','3 äggulor','1 dl riven parmesan','2 vitlöksklyftor','Salt och svartpeppar'], instructions:'1. Koka pastan al dente.\n2. Stek pancetta och vitlök knaprig.\n3. Vispa äggulor med parmesan.\n4. Blanda varm pasta med pancetta, dra från värmen.\n5. Rör ner äggblandningen snabbt. Salta och peppra.\n6. Servera genast med extra parmesan.', created:1001 },
+  { id:'seed3', title:'Smörig laxfilé med dillsås', cats:['Middag'], author:'Claude', ingr:['4 laxfiléer','2 msk smör','Salt och peppar','2 dl crème fraiche','1 knippe dill','1 citron','1 tsk dijonsenap'], instructions:'1. Salta och peppra laxen.\n2. Stek i smör 3–4 min per sida.\n3. Blanda crème fraiche, hackad dill, citronsaft och senap till sås.\n4. Värm såsen försiktigt.\n5. Servera laxen med dillsås och kokt potatis.', created:1002 },
+  { id:'seed4', title:'Pannkakor med jordgubbar', cats:['Frukost'], author:'Claude', ingr:['3 dl mjöl','6 dl mjölk','3 ägg','1 krm salt','2 msk smör','Jordgubbar','Vispad grädde'], instructions:'1. Vispa mjöl, salt och hälften av mjölken till en slät smet.\n2. Tillsätt resten av mjölken och äggen.\n3. Låt smeten vila 30 min.\n4. Stek tunna pannkakor i smör.\n5. Servera med färska jordgubbar och vispad grädde.', created:1003 },
+  { id:'seed5', title:'Tacos med hemgjord guacamole', cats:['Middag'], author:'Claude', ingr:['500g nötfärs','Tacokrydda','Tortillas','2 avokado','1 lime','1 tomat','Rödlök','Koriander','Crème fraiche'], instructions:'1. Bryn färsen, tillsätt tacokrydda och vatten.\n2. Mosa avokado med limesaft, salt och hackad koriander.\n3. Hacka tomat och rödlök.\n4. Värm tortillas.\n5. Lägg upp alla tillbehör och fyll tacosen.', created:1004 },
+  { id:'seed6', title:'Vegansk linssoppa', cats:['Middag','Vegetarisk'], author:'Claude', ingr:['300g röda linser','2 morötter','2 tomater','1 lök','3 vitlöksklyftor','1 tsk spiskummin','1 tsk gurkmeja','1,5 l grönsaksbuljong','Olivolja'], instructions:'1. Fräs lök och vitlök i olivolja.\n2. Tillsätt tärnade morötter och kryddor.\n3. Häll i sköljda linser, tomater och buljong.\n4. Koka 25 min tills linserna är mjuka.\n5. Mixa hälften för krämigare konsistens.', created:1005 },
+  { id:'seed7', title:'Chokladmousse', cats:['Dessert'], author:'Claude', ingr:['200g mörk choklad','4 ägg','2 msk socker','1 dl vispgrädde','1 krm salt'], instructions:'1. Smält chokladen, låt svalna.\n2. Vispa gulor med socker vitt och luftigt.\n3. Vispa grädden löst.\n4. Vispa vitorna med salt till hårt skum.\n5. Blanda choklad med gulor, vänd ner grädde och äggvitor.\n6. Kyl minst 2 timmar.', created:1006 },
+  { id:'seed8', title:'Caesar-sallad med krutonger', cats:['Lunch'], author:'Claude', ingr:['1 romansallad','100g parmesan','4 skivor vitt bröd','2 vitlöksklyftor','3 msk olivolja','2 msk majonnäs','1 msk worcestershiresås','1 citron'], instructions:'1. Tärna brödet, blanda med olivolja och vitlök. Rosta 200°C.\n2. Blanda majonnäs, worcestershire, citronsaft och parmesan till dressing.\n3. Riv salladen i bitar.\n4. Blanda med dressing och toppa med krutonger.', created:1007 },
+  { id:'seed9', title:'Hummus med pitabröd', cats:['Snack','Vegetarisk'], author:'Claude', ingr:['400g kikärtor','2 msk tahini','1 citron','2 vitlöksklyftor','3 msk olivolja','Salt','Paprikakrydda','Pitabröd'], instructions:'1. Skölj kikärtorna noga.\n2. Mixa med tahini, citronsaft, vitlök och olivolja.\n3. Tillsätt lite vatten för rätt konsistens.\n4. Smaka av med salt.\n5. Ringla olivolja och strö paprikakrydda. Servera med pitabröd.', created:1008 },
+  { id:'seed10', title:'Lemonad med mynta', cats:['Dryck'], author:'Claude', ingr:['4 citroner','1 dl socker','1 dl vatten','5 dl kallt vatten','Färsk mynta','Is'], instructions:'1. Koka socker och 1 dl vatten till sockerlag, låt svalna.\n2. Pressa citronerna.\n3. Blanda citronsaft, sockerlag och kallt vatten.\n4. Häll upp över is och garnera med mynta.', created:1009 },
+  { id:'seed11', title:'Kikärtsgryta med tomat', cats:['Middag','Vegetarisk'], author:'Claude', ingr:['2 burkar kikärtor','400g krossade tomater','1 lök','3 vitlöksklyftor','1 paprika','1 tsk koriander','1 tsk spiskummin','1 tsk chilipulver','Olivolja'], instructions:'1. Fräs hackad lök och vitlök i olivolja.\n2. Tillsätt tärnad paprika och kryddor.\n3. Häll i krossade tomater och kikärtor.\n4. Låt puttra 20 min.\n5. Servera med bröd eller ris.', created:1010 },
+  { id:'seed12', title:'Äggröra med gräddeost', cats:['Frukost','Vegetarisk'], author:'Claude', ingr:['6 ägg','2 msk smör','2 msk crème fraiche','Salt och peppar','Gräslök','Rostbröd'], instructions:'1. Knäck äggen i en kall kastrull med smör.\n2. Rör konstant på låg värme.\n3. Ta av strax innan äggen stelnat.\n4. Rör ner crème fraiche.\n5. Servera på rostbröd med gräslök.', created:1011 },
+  { id:'seed13', title:'Tiramisu', cats:['Dessert'], author:'Claude', ingr:['500g mascarpone','4 ägg','100g socker','200ml starkt kaffe','Savoiardi-kex','2 msk kakao','Amaretto (valfritt)'], instructions:'1. Vispa äggulor med socker vitt.\n2. Rör ner mascarpone.\n3. Vispa äggvitorna hårt och vänd ner.\n4. Doppa kexen i kaffe.\n5. Varva kex och kräm i form.\n6. Sikta kakao på toppen. Kyl 4 timmar.', created:1012 },
+  { id:'seed14', title:'Pulled pork-smörgås', cats:['Lunch'], author:'Claude', ingr:['1 kg fläskkarré','2 msk paprikakrydda','1 msk brynt socker','1 tsk vitlökspulver','Salt','BBQ-sås','Koleslaw','Briochebullar'], instructions:'1. Gnid in köttet med kryddorna.\n2. Ugn 120°C i 5 timmar eller slow cooker 8h.\n3. Riv köttet med två gafflar.\n4. Blanda med BBQ-sås.\n5. Servera i briochebullar med koleslaw.', created:1013 },
+  { id:'seed15', title:'Palak Paneer', cats:['Middag','Vegetarisk'], author:'Claude', ingr:['500g spenat','250g paneer','1 lök','3 vitlöksklyftor','1 msk ingefära','1 tsk garam masala','1 dl grädde','Olja','Salt'], instructions:'1. Blanchera spenaten 2 min, mixa slät.\n2. Stek tärnad paneer gyllene.\n3. Fräs lök, vitlök, ingefära och kryddor.\n4. Häll i spenat och grädde.\n5. Lägg ner paneern. Servera med naan.', created:1014 },
+  { id:'seed16', title:'Tom Yum-soppa', cats:['Lunch'], author:'Claude', ingr:['1 l kycklingbuljong','300g räkor','2 citrongrässtjälkar','3 kaffirlimeblad','2 msk fisksås','1 lime','1 röd chili','200g champinjoner','Koriander'], instructions:'1. Koka buljong med citrongräs och kaffirlimeblad 10 min.\n2. Sila, tillsätt svamp och chili.\n3. Lägg i räkorna och koka 2 min.\n4. Smaka av med fisksås och lime.\n5. Garnera med koriander.', created:1015 },
+  { id:'seed17', title:'Kladdkaka', cats:['Dessert'], author:'Claude', ingr:['150g smör','300g socker','4 ägg','100g kakao','2 tsk vaniljsocker','150g vetemjöl','1 krm salt'], instructions:'1. Smält smöret, rör ner socker och kakao.\n2. Vispa ner äggen ett i taget.\n3. Tillsätt vanilj, mjöl och salt.\n4. Häll i smord form (22 cm).\n5. Grädda 200°C i 15–18 min – mitten ska vara kletig!\n6. Pudra florsocker.', created:1016 },
+  { id:'seed18', title:'Caprese-sallad', cats:['Lunch','Vegetarisk'], author:'Claude', ingr:['4 mogna tomater','250g mozzarella','Färsk basilika','3 msk olivolja','Balsamicoglaze','Salt och peppar'], instructions:'1. Skiva tomater och mozzarella.\n2. Varva på ett fat.\n3. Lägg basilikablad emellan.\n4. Ringla olivolja och balsamicoglaze.\n5. Salta och peppra.', created:1017 },
+  { id:'seed19', title:'Mango lassi', cats:['Dryck'], author:'Claude', ingr:['2 mogna mangon','4 dl yoghurt','2 dl mjölk','2 msk honung','1 krm kardemumma','Is'], instructions:'1. Skala och skär mangon.\n2. Mixa med yoghurt och mjölk.\n3. Tillsätt honung och kardemumma.\n4. Häll upp med is och strö kardemumma på toppen.', created:1018 },
+  { id:'seed20', title:'Granola med bär', cats:['Frukost','Vegetarisk'], author:'Claude', ingr:['400g havregryn','100g blandade nötter','3 msk honung','3 msk kokosolja','1 tsk kanel','Torkade tranbär','Yoghurt och färska bär'], instructions:'1. Blanda havregryn, nötter, kanel och salt.\n2. Smält kokosolja med honung, häll över.\n3. Rosta 160°C i 25–30 min, rör om halvvägs.\n4. Låt svalna och blanda ner tranbär.\n5. Servera med yoghurt och bär.', created:1019 }
+];
+
+const ILLUSTRATIONS = {
+  seed1:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#FFF3E0"/><ellipse cx="150" cy="148" rx="100" ry="16" fill="#FFCC80"/><ellipse cx="150" cy="135" rx="95" ry="20" fill="#FFE0B2"/><circle cx="108" cy="115" r="20" fill="#795548"/><circle cx="150" cy="108" r="20" fill="#6D4C41"/><circle cx="192" cy="115" r="20" fill="#795548"/><circle cx="108" cy="115" r="15" fill="#8D6E63"/><circle cx="150" cy="108" r="15" fill="#795548"/><circle cx="192" cy="115" r="15" fill="#8D6E63"/><ellipse cx="82" cy="132" rx="24" ry="10" fill="#F5F5DC"/><ellipse cx="220" cy="130" rx="22" ry="9" fill="#C62828" opacity="0.75"/><circle cx="84" cy="130" r="3.5" fill="#E53935"/><circle cx="78" cy="134" r="3" fill="#E53935"/><circle cx="90" cy="134" r="2.5" fill="#E53935"/></svg>`,
+  seed2:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#FFFDE7"/><ellipse cx="150" cy="140" rx="90" ry="18" fill="#F5CBA7"/><g stroke="#F9A825" stroke-width="5" fill="none" stroke-linecap="round"><path d="M85 130 Q110 95 135 118 Q155 85 175 112 Q195 88 215 122"/><path d="M82 142 Q107 107 132 130 Q152 97 172 124 Q192 100 212 134"/></g><circle cx="205" cy="80" r="24" fill="#FFF9C4" stroke="#F9A825" stroke-width="2"/><ellipse cx="205" cy="80" rx="17" ry="11" fill="#FDEBD0"/><circle cx="199" cy="76" r="6" fill="#F5CBA7"/><path d="M192 86 Q205 92 218 86" stroke="#F9A825" stroke-width="1.5" fill="none"/></svg>`,
+  seed3:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#E8F5E9"/><ellipse cx="150" cy="148" rx="110" ry="18" fill="#A5D6A7"/><rect x="58" y="88" width="140" height="50" rx="10" fill="#FF7043"/><rect x="58" y="88" width="140" height="18" rx="8" fill="#E64A19"/><ellipse cx="128" cy="88" rx="70" ry="14" fill="#BF360C" opacity="0.5"/><rect x="200" y="100" width="52" height="32" rx="7" fill="#F5F5DC"/><circle cx="226" cy="90" r="16" fill="#FFF176"/><path d="M220 82 L226 70 L232 82" fill="#43A047"/><path d="M218 79 L226 67 L234 79" fill="#2E7D32" opacity="0.7"/><path d="M75 104 Q110 98 130 104 Q155 98 185 103" stroke="#388E3C" stroke-width="2.5" fill="none"/></svg>`,
+  seed4:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#FFF8E1"/><ellipse cx="150" cy="148" rx="90" ry="14" fill="#FFCC02" opacity="0.3"/><ellipse cx="150" cy="132" rx="85" ry="16" fill="#FFF8DC"/><ellipse cx="150" cy="122" rx="78" ry="14" fill="#FDEBD0"/><ellipse cx="150" cy="114" rx="68" ry="12" fill="#FAE5D3"/><ellipse cx="102" cy="107" rx="13" ry="17" fill="#E53935"/><ellipse cx="116" cy="102" rx="11" ry="15" fill="#C62828"/><ellipse cx="129" cy="105" rx="12" ry="16" fill="#EF5350"/><ellipse cx="142" cy="101" rx="11" ry="14" fill="#C62828"/><ellipse cx="178" cy="94" rx="12" ry="15" fill="white"/><path d="M174 100 Q181 84 188 100 Q195 84 202 100" stroke="white" stroke-width="9" fill="none" stroke-linecap="round" opacity="0.85"/></svg>`,
+  seed5:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#FFF3E0"/><path d="M58 155 Q90 85 150 80 Q210 85 242 155Z" fill="#F5CBA7"/><path d="M58 155 Q90 85 150 80 Q210 85 242 155" stroke="#E59866" stroke-width="3" fill="none"/><rect x="78" y="108" width="144" height="38" rx="4" fill="#BF360C" opacity="0.85"/><rect x="78" y="108" width="144" height="14" rx="4" fill="#8D1A00"/><circle cx="100" cy="118" r="7" fill="#C62828"/><circle cx="122" cy="115" r="8" fill="#2E7D32"/><circle cx="145" cy="119" r="6" fill="#EF5350"/><circle cx="167" cy="115" r="7" fill="#F57F17"/><circle cx="190" cy="118" r="6" fill="#C62828"/><path d="M73 153 Q150 140 227 153" stroke="#E59866" stroke-width="2" fill="none"/></svg>`,
+  seed6:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#FFF8E1"/><ellipse cx="150" cy="145" rx="88" ry="22" fill="#FFB300"/><ellipse cx="150" cy="128" rx="84" ry="28" fill="#FF8F00" opacity="0.9"/><circle cx="118" cy="116" r="8" fill="#E65100"/><circle cx="145" cy="110" r="9" fill="#BF360C"/><circle cx="172" cy="116" r="8" fill="#E65100"/><circle cx="132" cy="127" r="7" fill="#5D4037"/><circle cx="160" cy="122" r="8" fill="#4E342E"/><ellipse cx="105" cy="112" rx="10" ry="13" fill="#FF7043"/><ellipse cx="194" cy="112" rx="10" ry="13" fill="#FF7043"/><path d="M115 88 Q122 72 130 88" stroke="#33691E" stroke-width="3" fill="none"/><path d="M170 86 Q178 70 186 86" stroke="#33691E" stroke-width="3" fill="none"/><circle cx="122" cy="87" r="4.5" fill="#E53935"/><circle cx="178" cy="85" r="4.5" fill="#E53935"/></svg>`,
+  seed7:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#EFEBE9"/><rect x="78" y="72" width="144" height="92" rx="14" fill="#3E2723"/><rect x="78" y="72" width="144" height="32" rx="14" fill="#5D4037"/><rect x="78" y="96" width="144" height="10" fill="#4E342E"/><ellipse cx="150" cy="72" rx="72" ry="16" fill="#6D4C41"/><path d="M95 108 Q150 102 205 108 Q202 142 150 147 Q98 142 95 108Z" fill="#1A0A00" opacity="0.45"/><circle cx="128" cy="67" r="9" fill="#795548" opacity="0.65"/><circle cx="162" cy="65" r="7" fill="#795548" opacity="0.65"/><path d="M118 54 Q128 44 138 54" stroke="#BCAAA4" stroke-width="2.5" fill="none"/><path d="M154 51 Q164 41 174 51" stroke="#BCAAA4" stroke-width="2.5" fill="none"/></svg>`,
+  seed8:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#F1F8E9"/><ellipse cx="150" cy="143" rx="102" ry="20" fill="#AED581"/><g fill="#7CB342" opacity="0.95"><ellipse cx="108" cy="118" rx="24" ry="13" transform="rotate(-22 108 118)"/><ellipse cx="140" cy="110" rx="26" ry="12" transform="rotate(12 140 110)"/><ellipse cx="172" cy="115" rx="22" ry="13" transform="rotate(-16 172 115)"/><ellipse cx="123" cy="128" rx="24" ry="11" transform="rotate(6 123 128)"/><ellipse cx="160" cy="125" rx="22" ry="12" transform="rotate(-9 160 125)"/></g><rect x="98" y="110" width="19" height="9" rx="3" fill="#F5CBA7" transform="rotate(-12 98 110)"/><rect x="162" y="106" width="17" height="8" rx="3" fill="#F5CBA7" transform="rotate(9 162 106)"/><circle cx="148" cy="120" r="15" fill="#FAFAFA" opacity="0.65"/></svg>`,
+  seed9:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#FFF8E1"/><ellipse cx="142" cy="140" rx="76" ry="20" fill="#C8912A"/><ellipse cx="142" cy="126" rx="73" ry="22" fill="#E8A930"/><ellipse cx="142" cy="116" rx="69" ry="20" fill="#F5C842"/><circle cx="142" cy="110" r="32" fill="#EFC040"/><circle cx="142" cy="110" r="25" fill="#F5D060"/><circle cx="133" cy="105" r="4.5" fill="#BF8C20" opacity="0.65"/><circle cx="148" cy="100" r="3.5" fill="#BF8C20" opacity="0.65"/><circle cx="156" cy="111" r="4" fill="#BF8C20" opacity="0.65"/><path d="M142 84 Q146 77 142 73 Q138 77 142 84Z" fill="#C8912A"/><rect x="204" y="86" width="52" height="68" rx="7" fill="#F5DEB3"/><rect x="204" y="86" width="52" height="13" rx="7" fill="#C8A96A"/><rect x="209" y="101" width="42" height="8" rx="2" fill="#C8A96A" opacity="0.5"/></svg>`,
+  seed10:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#E3F2FD"/><rect x="102" y="62" width="96" height="104" rx="22" fill="#B3E5FC" opacity="0.75"/><rect x="102" y="62" width="96" height="104" rx="22" fill="none" stroke="#81D4FA" stroke-width="2.5"/><rect x="97" y="58" width="106" height="14" rx="7" fill="#29B6F6"/><ellipse cx="150" cy="160" rx="48" ry="7" fill="#81D4FA" opacity="0.4"/><ellipse cx="150" cy="114" rx="38" ry="38" fill="#E1F5FE" opacity="0.5"/><circle cx="136" cy="100" r="9" fill="#FDD835"/><circle cx="164" cy="100" r="9" fill="#FDD835"/><ellipse cx="136" cy="97" rx="6" ry="7" fill="#F9A825"/><ellipse cx="164" cy="97" rx="6" ry="7" fill="#F9A825"/><path d="M128 122 Q150 132 172 122" stroke="#2E7D32" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M138 116 L136 105 L143 113" fill="#43A047"/><path d="M162 116 L164 105 L157 113" fill="#43A047"/></svg>`,
+  seed11:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#FBE9E7"/><ellipse cx="150" cy="146" rx="88" ry="20" fill="#FFAB91"/><ellipse cx="150" cy="130" rx="84" ry="26" fill="#F4511E"/><circle cx="118" cy="115" r="11" fill="#BF360C"/><circle cx="146" cy="108" r="12" fill="#E64A19"/><circle cx="173" cy="115" r="11" fill="#BF360C"/><circle cx="131" cy="126" r="9" fill="#8D2400"/><circle cx="160" cy="120" r="10" fill="#6D1A00"/><ellipse cx="104" cy="112" rx="11" ry="14" fill="#FF7043"/><ellipse cx="194" cy="112" rx="11" ry="14" fill="#FF7043"/><path d="M118 88 Q128 70 140 86" stroke="#2E7D32" stroke-width="3.5" fill="none"/><circle cx="129" cy="86" r="5" fill="#E53935"/><path d="M162 85 Q172 67 184 83" stroke="#2E7D32" stroke-width="3.5" fill="none"/><circle cx="173" cy="83" r="5" fill="#E53935"/></svg>`,
+  seed12:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#FFFDE7"/><rect x="68" y="112" width="164" height="52" rx="7" fill="#BC8A5F"/><rect x="68" y="112" width="164" height="16" rx="5" fill="#A0674A"/><rect x="73" y="130" width="154" height="31" rx="5" fill="#C9956B"/><ellipse cx="150" cy="108" rx="72" ry="18" fill="#FFF9C4"/><ellipse cx="150" cy="101" rx="68" ry="16" fill="#FDD835"/><circle cx="126" cy="95" r="9" fill="#FBC02D"/><circle cx="150" cy="90" r="10" fill="#F9A825"/><circle cx="174" cy="95" r="9" fill="#FBC02D"/><path d="M117 91 Q150 83 183 91" stroke="#E65100" stroke-width="2" fill="none"/><path d="M196 74 L202 54 L208 74" stroke="#558B2F" stroke-width="2" fill="#558B2F"/></svg>`,
+  seed13:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#EFEBE9"/><rect x="62" y="84" width="176" height="82" rx="9" fill="#4E342E"/><rect x="62" y="84" width="176" height="27" rx="9" fill="#6D4C41"/><rect x="62" y="104" width="176" height="11" fill="#3E2723"/><rect x="62" y="125" width="176" height="21" rx="5" fill="#5D4037"/><rect x="62" y="146" width="176" height="20" rx="5" fill="#3E2723"/><rect x="57" y="81" width="186" height="13" rx="6.5" fill="#795548"/><ellipse cx="150" cy="81" rx="93" ry="9" fill="#8D6E63"/><circle cx="108" cy="77" r="3.5" fill="#BCAAA4" opacity="0.6"/><circle cx="150" cy="75" r="3.5" fill="#BCAAA4" opacity="0.6"/><circle cx="192" cy="77" r="3.5" fill="#BCAAA4" opacity="0.6"/></svg>`,
+  seed14:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#FFF8E1"/><ellipse cx="150" cy="155" rx="85" ry="14" fill="#F5CBA7"/><ellipse cx="150" cy="136" rx="82" ry="28" fill="#FFD54F"/><rect x="73" y="112" width="154" height="32" rx="6" fill="#6D3400"/><rect x="73" y="112" width="154" height="13" rx="6" fill="#4E2600"/><path d="M78 121 Q150 113 222 121" stroke="#B71C1C" stroke-width="5" fill="none" opacity="0.75"/><path d="M78 126 Q112 118 145 122 Q178 115 222 122" stroke="#1B5E20" stroke-width="3.5" fill="none" opacity="0.65"/><ellipse cx="150" cy="110" rx="82" ry="17" fill="#FDEBD0" opacity="0.85"/></svg>`,
+  seed15:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#E8F5E9"/><ellipse cx="150" cy="146" rx="92" ry="22" fill="#81C784"/><ellipse cx="150" cy="128" rx="88" ry="26" fill="#1B5E20" opacity="0.88"/><ellipse cx="150" cy="116" rx="82" ry="22" fill="#2E7D32"/><rect x="113" y="100" width="13" height="20" rx="4.5" fill="#FFFDE7"/><rect x="140" y="95" width="13" height="25" rx="4.5" fill="#FFFDE7"/><rect x="167" y="100" width="13" height="20" rx="4.5" fill="#FFFDE7"/><path d="M88 104 Q94 86 105 102" stroke="#1B5E20" stroke-width="3.5" fill="none"/><path d="M86 101 L94 86 L102 101" fill="#1B5E20"/><path d="M196 102 Q202 84 213 100" stroke="#1B5E20" stroke-width="3.5" fill="none"/><path d="M194 99 L202 84 L210 99" fill="#1B5E20"/></svg>`,
+  seed16:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#E0F7FA"/><ellipse cx="150" cy="156" rx="80" ry="13" fill="#80DEEA"/><rect x="106" y="65" width="88" height="94" rx="16" fill="#B2EBF2"/><rect x="106" y="65" width="88" height="94" rx="16" fill="none" stroke="#80DEEA" stroke-width="2.5"/><rect x="100" y="62" width="100" height="17" rx="8.5" fill="#00ACC1"/><ellipse cx="150" cy="152" rx="44" ry="6" fill="#00ACC1" opacity="0.35"/><path d="M113 100 Q150 89 187 100" stroke="#E0F7FA" stroke-width="9" fill="none" opacity="0.45"/><path d="M113 116 Q150 105 187 116" stroke="#B2EBF2" stroke-width="7" fill="none" opacity="0.4"/><path d="M113 130 Q150 119 187 130" stroke="#E0F7FA" stroke-width="5" fill="none" opacity="0.3"/><circle cx="130" cy="80" r="5.5" fill="#FDD835"/><circle cx="150" cy="76" r="5.5" fill="#FDD835"/><circle cx="170" cy="80" r="5.5" fill="#FDD835"/></svg>`,
+  seed17:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#EFEBE9"/><ellipse cx="150" cy="155" rx="85" ry="14" fill="#4E342E" opacity="0.35"/><ellipse cx="150" cy="140" rx="82" ry="20" fill="#3E2723"/><ellipse cx="150" cy="124" rx="80" ry="24" fill="#2A1208"/><ellipse cx="150" cy="112" rx="76" ry="21" fill="#1A0800"/><ellipse cx="150" cy="104" rx="72" ry="15" fill="#3E2723"/><path d="M92 102 Q150 90 208 102" stroke="#6D4C41" stroke-width="3" fill="none" opacity="0.65"/><circle cx="116" cy="97" r="5.5" fill="#5D4037" opacity="0.75"/><circle cx="150" cy="91" r="6.5" fill="#5D4037" opacity="0.75"/><circle cx="184" cy="97" r="5.5" fill="#5D4037" opacity="0.75"/></svg>`,
+  seed18:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#FAFAFA"/><ellipse cx="150" cy="152" rx="100" ry="16" fill="#EEEEEE"/><circle cx="112" cy="118" r="24" fill="#EF5350"/><circle cx="112" cy="118" r="17" fill="#FFCDD2"/><circle cx="152" cy="110" r="24" fill="#FAFAFA" stroke="#E0E0E0" stroke-width="1.5"/><circle cx="152" cy="110" r="17" fill="#F5F5F5"/><circle cx="190" cy="118" r="24" fill="#EF5350"/><circle cx="190" cy="118" r="17" fill="#FFCDD2"/><circle cx="132" cy="124" r="21" fill="#FAFAFA" stroke="#E0E0E0" stroke-width="1"/><circle cx="168" cy="120" r="21" fill="#EF5350" opacity="0.9"/><path d="M104 93 L110 77 L116 93" fill="#2E7D32"/><path d="M182 91 L188 75 L194 91" fill="#2E7D32"/></svg>`,
+  seed19:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#FFF8E1"/><rect x="98" y="62" width="104" height="104" rx="32" fill="#FFA000" opacity="0.88"/><rect x="98" y="62" width="104" height="104" rx="32" fill="none" stroke="#FF6F00" stroke-width="2.5"/><rect x="93" y="58" width="114" height="20" rx="10" fill="#E65100"/><ellipse cx="150" cy="162" rx="52" ry="7" fill="#FFA000" opacity="0.3"/><ellipse cx="150" cy="118" rx="40" ry="40" fill="#FFD54F" opacity="0.45"/><path d="M123 105 Q150 94 177 105 Q174 132 150 137 Q126 132 123 105Z" fill="#FFF8E1" opacity="0.4"/><path d="M133 100 Q150 91 167 100" stroke="#FF6F00" stroke-width="2" fill="none"/></svg>`,
+  seed20:`<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="#FFF8E1"/><ellipse cx="150" cy="154" rx="90" ry="14" fill="#D7B88A"/><ellipse cx="150" cy="138" rx="87" ry="20" fill="#C19A6B"/><ellipse cx="150" cy="124" rx="84" ry="20" fill="#D4A96A"/><ellipse cx="150" cy="114" rx="80" ry="18" fill="#FFEAB0"/><circle cx="116" cy="106" r="6.5" fill="#8B4513"/><circle cx="134" cy="100" r="7.5" fill="#5D2E0C"/><circle cx="155" cy="103" r="6" fill="#8B4513"/><circle cx="172" cy="106" r="6.5" fill="#6B3410"/><circle cx="143" cy="111" r="5.5" fill="#5D2E0C"/><circle cx="164" cy="109" r="5" fill="#8B4513"/><circle cx="105" cy="100" r="5.5" fill="#C62828"/><circle cx="120" cy="96" r="4.5" fill="#B71C1C"/><circle cx="176" cy="98" r="5.5" fill="#C62828"/><circle cx="190" cy="102" r="4.5" fill="#558B2F"/></svg>`
+};
+
+function getRecipeIllustration(r) {
+  if (ILLUSTRATIONS[r.id]) return ILLUSTRATIONS[r.id];
+  const cat = (r.cats && r.cats[0]) || r.cat || 'Övrigt';
+  const palettes = {Frukost:['#FFF9C4','#FFB300'],Lunch:['#E8F5E9','#43A047'],Middag:['#FBE9E7','#E64A19'],Dessert:['#F3E5F5','#8E24AA'],Vegetarisk:['#E8F5E9','#2E7D32'],Snack:['#FFF8E1','#F57F17'],Dryck:['#E3F2FD','#1565C0'],Övrigt:['#F5F5F5','#616161']};
+  const [bg, accent] = palettes[cat] || ['#F5F5F5','#616161'];
+  const em = catEmoji[cat] || '🍴';
+  return '<svg viewBox="0 0 300 180" xmlns="http://www.w3.org/2000/svg"><rect width="300" height="180" fill="'+bg+'"/><circle cx="150" cy="90" r="55" fill="'+accent+'" opacity="0.2"/><text x="150" y="108" text-anchor="middle" font-size="64">'+em+'</text></svg>';
+}
+
+function seedIfEmpty() {
+  const existing = getRecipes();
+  const seedMap = Object.fromEntries(SEED_RECIPES.map(r => [r.id, r]));
+  const updated = existing.map(r => seedMap[r.id] ? {...r, cats: seedMap[r.id].cats} : r);
+  // migrate old cat->cats
+  const migrated = updated.map(r => { if (!r.cats) { r.cats = [r.cat || 'Övrigt']; } return r; });
+  const hasSeed = migrated.some(r => r.id && r.id.startsWith('seed'));
+  if (!hasSeed) { saveRecipes([...SEED_RECIPES, ...migrated]); }
+  else { saveRecipes(migrated); }
+}
+function reseedRecipes() {
+  const existing = getRecipes().filter(r => !r.id.startsWith('seed'));
+  saveRecipes([...SEED_RECIPES, ...existing]);
+  allRecipes = getRecipes();
+  renderRecipes();
+  closeModal('settings-modal');
+  alert(t('seedRestored'));
+}
+
+// ── AUTH ──
+function switchTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.auth-tab').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('register-fields').style.display = tab==='register'?'block':'none';
+  document.getElementById('remember-wrap').style.display = tab==='login'?'flex':'none';
+  document.getElementById('auth-main-btn').textContent = tab==='login'?'Logga in':'Skapa konto';
+  document.getElementById('auth-error').textContent = '';
+}
+function isValidEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+function handleAuth() {
+  const email = document.getElementById('auth-user').value.trim().toLowerCase();
+  const pass = document.getElementById('auth-pass').value;
+  const remember = document.getElementById('remember-me').checked;
+  const err = document.getElementById('auth-error');
+  if (!email||!pass) { err.textContent='Fyll i alla fält.'; return; }
+  if (!isValidEmail(email)) { err.textContent='Ange en giltig e-postadress.'; return; }
+  if (currentTab==='login') {
+    if (email===OWNER&&pass===OWNER_PASS) { if(remember)setSavedLogin({email,pass}); else clearSavedLogin(); loginAs('Admin',email); return; }
+    const users = getUsers();
+    if (users[email]&&users[email].pass===pass) { if(remember)setSavedLogin({email,pass}); else clearSavedLogin(); loginAs(users[email].display,email); }
+    else err.textContent='Fel e-post eller lösenord.';
+  } else {
+    const display = document.getElementById('reg-display').value.trim();
+    if (!display) { err.textContent='Välj ett visningsnamn.'; return; }
+    if (display.length<2) { err.textContent='Minst 2 tecken.'; return; }
+    if (email===OWNER) { err.textContent='E-postadressen är redan registrerad.'; return; }
+    const users = getUsers();
+    if (users[email]) { err.textContent='E-postadressen finns redan.'; return; }
+    users[email]={pass,display}; saveUsers(users); loginAs(display,email);
+  }
+}
+function loginAs(name,email) {
+  currentUser={name,email};
+  // Load saved avatar
+  const users = getUsers();
+  if (users[email]?.avatar) currentUser.avatar = users[email].avatar;
+  document.getElementById('auth-page').classList.remove('active');
+  document.getElementById('main-page').classList.add('active');
+  document.getElementById('welcome-text').textContent = t('welcome') + ' ' + name + '!';
+  document.getElementById('fab-add').classList.remove('hidden');
+  renderNavAvatar();
+  window.scrollTo({top:0,behavior:'instant'});
+  document.documentElement.scrollTop=0; document.body.scrollTop=0;
+  loadAndRender();
+}
+function logout() {
+  clearSavedLogin(); currentUser=null; searchQuery='';
+  resetTimer();
+  document.getElementById('search-input').value='';
+  document.getElementById('search-clear').style.display='none';
+  document.getElementById('main-page').classList.remove('active');
+  document.getElementById('auth-page').classList.add('active');
+  document.getElementById('auth-user').value='';
+  document.getElementById('auth-pass').value='';
+  document.getElementById('remember-me').checked=false;
+  document.getElementById('auth-error').textContent='';
+  allRecipes=[];
+  window.scrollTo({top:0,behavior:'instant'});
+}
+
+// ── DAGENS RECEPT ──
+function renderDagensRecept() {
+  const dagensEl = document.getElementById('dagens-section');
+  const grid = document.getElementById('dagens-grid');
+  if (!dagensEl || !grid) return;
+
+  // Hide entirely when showing only favorites
+  if (favOnly) {
+    dagensEl.style.display = 'none';
+    return;
+  }
+
+  // Use date as seed for consistent daily pick
+  const today = new Date();
+  const seed = today.getFullYear() * 10000 + (today.getMonth()+1) * 100 + today.getDate();
+
+  // Filter out Dryck
+  const eligible = allRecipes.filter(r => {
+    const cats = getCats(r);
+    return !cats.includes('Dryck');
+  });
+
+  // Split into vegetarian and non-vegetarian
+  const vegRecipes = eligible.filter(r => getCats(r).includes('Vegetarisk'));
+  const nonVegRecipes = eligible.filter(r => !getCats(r).includes('Vegetarisk'));
+
+  function pickByDay(arr, offset) {
+    if (!arr.length) return null;
+    return arr[(seed + offset) % arr.length];
+  }
+
+  const vegPick = pickByDay(vegRecipes, 0);
+  const nonVegPick = pickByDay(nonVegRecipes, 7);
+
+  if (!vegPick && !nonVegPick) { dagensEl.style.display = 'none'; return; }
+  dagensEl.style.display = 'block';
+
+  const cards = [
+    vegPick ? renderDagensCard(vegPick, t('todayVeg')) : '',
+    nonVegPick ? renderDagensCard(nonVegPick, t('todayMeat')) : ''
+  ].join('');
+  grid.innerHTML = cards;
+}
+
+function renderDagensCard(r, label) {
+  const cats = getCats(r);
+  const badges = cats.map(c => `<span class="card-cat cat-${c.toLowerCase()}">${c}</span>`).join(' ');
+  const imgHtml = r.img ? `<div class="card-img"><img src="${r.img}" alt="${r.title}" style="width:100%;height:100%;object-fit:cover;"></div>` : '';
+  const isFav = getFavs().includes(r.id);
+  return `<div class="recipe-card" onclick="viewRecipe('${r.id}')">
+    <button class="fav-btn" onclick="toggleFav('${r.id}',event)">${isFav?'❤️':'🤍'}</button>
+    ${imgHtml}
+    <div class="card-body">
+      <div class="dagens-badge">⭐ Dagens recept</div>
+      <div class="dagens-tag">${label}</div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:6px;">${badges}</div>
+      <div class="card-title">${r.title}</div>
+      <div class="card-author">${t('createdBy')} <span>${r.author}</span></div>
+    </div>
+  </div>`;
+}
+function onSearch(input) {
+  searchQuery=input.value.trim().toLowerCase();
+  document.getElementById('search-clear').style.display=searchQuery?'block':'none';
+  renderRecipes();
+}
+function clearSearch() {
+  searchQuery=''; document.getElementById('search-input').value='';
+  document.getElementById('search-clear').style.display='none'; renderRecipes();
+}
+
+// ── RECIPES ──
+function loadAndRender() {
+  document.getElementById('loading-state').style.display='block';
+  document.getElementById('recipe-grid').style.display='none';
+  document.getElementById('empty-state').style.display='none';
+  allRecipes=getRecipes();
+  renderDagensRecept();
+  renderRecipes();
+}
+function filterCat(cat, el) {
+  if (currentCat === cat) {
+    // Click same category again → go back to Alla
+    currentCat = 'Alla';
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+    document.querySelector('.cat-pill').classList.add('active'); // first pill = Alla
+  } else {
+    currentCat = cat;
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+  }
+  renderRecipes();
+}
+function getCats(r) { return r.cats || (r.cat ? [r.cat] : ['Övrigt']); }
+function renderRecipes() {
+  let filtered = currentCat==='Alla' ? allRecipes : allRecipes.filter(r => getCats(r).includes(currentCat));
+  if (settings.showSeed === false) filtered = filtered.filter(r => !r.id.startsWith('seed'));
+  if (favOnly) { const favs = getFavs(); filtered = filtered.filter(r => favs.includes(r.id)); }
+  if (searchQuery) filtered=filtered.filter(r=>r.title.toLowerCase().includes(searchQuery)||getCats(r).join(' ').toLowerCase().includes(searchQuery)||r.author.toLowerCase().includes(searchQuery)||(r.ingr&&r.ingr.some(i=>i.toLowerCase().includes(searchQuery))));
+  const grid=document.getElementById('recipe-grid');
+  const empty=document.getElementById('empty-state');
+  document.getElementById('loading-state').style.display='none';
+  document.getElementById('recipe-count').textContent=filtered.length+' '+t('recipes');
+  if (filtered.length===0) {
+    grid.style.display='none'; empty.style.display='block';
+    empty.querySelector('h3').textContent = searchQuery ? t('noSearch') : favOnly ? t('noFavs') : t('noRecipes');
+    empty.querySelector('p').textContent = searchQuery ? t('noSearchMsg') : favOnly ? t('noFavsMsg') : t('noRecipesMsg');
+  } else {
+    empty.style.display='none'; grid.style.display='grid';
+    grid.innerHTML=filtered.map(r=>{
+      const cats = getCats(r);
+      const badges = cats.map(c=>`<span class="card-cat cat-${c.toLowerCase()}">${c}</span>`).join(' ');
+      const isFav = getFavs().includes(r.id);
+      const avg = getAvgRating(r.id);
+      const rounded = Math.round(avg);
+      const starsHtml = `<div class="card-stars">${'★'.repeat(rounded)}${'☆'.repeat(5-rounded)}${avg > 0 ? ` <span style="color:#aaa;font-size:11px;">${avg.toFixed(1)}</span>` : ''}</div>`;
+      return `<div class="recipe-card" onclick="viewRecipe('${r.id}')">
+        <button class="fav-btn" onclick="toggleFav('${r.id}',event)">${isFav?'❤️':'🤍'}</button>
+        <div class="card-img" style="${r.img ? '' : 'display:none;'}">${r.img ? `<img src="${r.img}" alt="${r.title}" style="width:100%;height:100%;object-fit:cover;">` : ''}</div>
+        <div class="card-body">
+          <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">${badges}</div>
+          <div class="card-title">${r.title}</div>
+          ${starsHtml}
+          <div class="card-author">${t('createdBy')} <span style="cursor:pointer;text-decoration:underline dotted;" onclick="event.stopPropagation();openProfileByName('${r.author}')">${r.author}</span></div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+}
+function openAddModal() {
+  if (!currentUser) return;
+  document.getElementById('r-title').value='';
+  document.querySelectorAll('#cat-checkboxes input[type=checkbox]').forEach(cb => cb.checked = false);
+  document.getElementById('r-servings').value = '';
+  document.getElementById('recipe-error').textContent='';
+  document.getElementById('ingr-list').innerHTML='';
+  document.getElementById('img-preview').style.display='none';
+  document.getElementById('upload-placeholder').style.display='block';
+  addIngrRow(); openModal('add-modal');
+}
+function addIngrRow() {
+  const row=document.createElement('div'); row.className='ingr-row';
+  row.innerHTML=`<input type="text" class="form-input ingr-input" placeholder="T.ex. 200g mjöl"><button class="rm-btn" onclick="this.parentElement.remove()">✕</button>`;
+  document.getElementById('ingr-list').appendChild(row);
+}
+function previewImg(input) {
+  if (!input.files[0]) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const prev=document.getElementById('img-preview');
+    prev.src=e.target.result; prev.style.display='block';
+    document.getElementById('upload-placeholder').style.display='none';
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+function submitRecipe() {
+  const title=document.getElementById('r-title').value.trim();
+  const cats=[...document.querySelectorAll('#cat-checkboxes input:checked')].map(cb=>cb.value);
+  const instructions=document.getElementById('r-instructions').value.trim();
+  const ingr=[...document.querySelectorAll('.ingr-input')].map(i=>i.value.trim()).filter(Boolean);
+  const err=document.getElementById('recipe-error');
+  const btn=document.getElementById('submit-btn');
+  if (!title){err.textContent=t('fErrTitle');return;}
+  if (!cats.length){err.textContent=t('fErrCat');return;}
+  if (!ingr.length){err.textContent=t('fErrIngr');return;}
+  if (!instructions){err.textContent=t('fErrInstr');return;}
+  const prev=document.getElementById('img-preview');
+  const img=prev.style.display!=='none'?prev.src:null;
+  const servings = parseInt(document.getElementById('r-servings').value) || 4;
+  btn.disabled=true; btn.textContent=t('publishing');
+  const recipe={id:Date.now().toString(),title,cats,instructions,ingr,img,servings,author:currentUser.name,created:Date.now()};
+  const recipes=getRecipes(); recipes.unshift(recipe); saveRecipes(recipes); allRecipes=recipes;
+  closeModal('add-modal'); renderRecipes();
+  btn.disabled=false; btn.textContent=t('fPublish');
+}
+function viewRecipe(id) {
+  const r=allRecipes.find(x=>x.id===id); if (!r) return;
+  viewingId=id; resetTimer();
+  const ilDiv = document.getElementById('view-illustration');
+  if (r.img) {
+    ilDiv.style.display = 'block';
+    ilDiv.innerHTML = `<img src="${r.img}" alt="${r.title}" style="width:100%;height:220px;object-fit:cover;display:block;">`;
+  } else {
+    ilDiv.style.display = 'none';
+    ilDiv.innerHTML = '';
+  }
+  const cats = getCats(r);
+  document.getElementById('view-cat').innerHTML = cats.map(c=>`<span class="card-cat cat-${c.toLowerCase()}">${c}</span>`).join(' ');
+  document.getElementById('view-title').textContent=r.title;
+  document.getElementById('view-author').innerHTML=`${t('createdBy')} <span>${r.author}</span>`;
+  document.getElementById('view-h-ingr').textContent = t('vIngredients');
+  document.getElementById('view-h-instr').textContent = t('vInstructions');
+  document.getElementById('view-h-timer').textContent = t('vTimer');
+  document.getElementById('view-portions-label').textContent = t('vPortions');
+  document.getElementById('timer-lh').textContent = t('timerH');
+  document.getElementById('timer-lm').textContent = t('timerM');
+  document.getElementById('timer-ls').textContent = t('timerS');
+  const _dbb = document.getElementById('delete-btn');
+  if(_dbb) _dbb.textContent = t('vDelete');
+  baseServings = r.servings || 4;
+  currentServings = baseServings;
+  document.getElementById('view-servings').textContent = currentServings;
+  baseIngredients = r.ingr || [];
+  renderIngredients();
+  document.getElementById('view-instr').textContent = r.instructions;
+  document.getElementById('delete-btn').style.display=(currentUser&&(currentUser.email===OWNER||currentUser.name===r.author))?'inline-block':'none';
+  openModal('view-modal');
+  renderStars(id);
+  renderComments(id);
+}
+
+
+function deleteCurrentRecipe() {
+  if (!confirm(t('confirmDeleteRecipe'))) return;
+  const recipes=getRecipes().filter(r=>r.id!==viewingId);
+  saveRecipes(recipes); allRecipes=recipes; closeModal('view-modal'); renderRecipes();
+}
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id === 'settings-modal') {
+    populateMyRecipes();
+    if (currentUser) document.getElementById('account-name-label').textContent = currentUser.name;
+    document.getElementById('setting-show-seed').checked = settings.showSeed !== false;
+    applyFontSize(settings.fontSize, false);
+    renderSettingsAvatar();
+  }
+}
+function populateMyRecipes() {
+  if (!currentUser) return;
+  const myRecipes = getRecipes().filter(r => r.author === currentUser.name);
+  const list = document.getElementById('my-recipes-list');
+  const delAllBtn = document.getElementById('delete-all-mine-btn');
+  if (myRecipes.length === 0) {
+    list.innerHTML = '<div class="no-recipes-msg">Du har inga egna recept ännu.</div>';
+    delAllBtn.style.display = 'none';
+  } else {
+    list.innerHTML = myRecipes.map(r => `
+      <div class="my-recipe-item">
+        <span>${r.title}</span>
+        <button class="my-recipe-del" onclick="deleteMyRecipe('${r.id}')">🗑️ Radera</button>
+      </div>`).join('');
+    delAllBtn.style.display = 'block';
+  }
+}
+function deleteMyRecipe(id) {
+  if (!confirm('Radera detta recept?')) return;
+  const recipes = getRecipes().filter(r => r.id !== id);
+  saveRecipes(recipes); allRecipes = recipes;
+  renderRecipes(); populateMyRecipes();
+}
+function deleteAllMyRecipes() {
+  if (!confirm(t('confirmDeleteAll'))) return;
+  const recipes = getRecipes().filter(r => r.author !== currentUser.name);
+  saveRecipes(recipes); allRecipes = recipes;
+  renderRecipes(); populateMyRecipes();
+}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m){m.classList.remove('open'); if(m.id==='view-modal') resetTimer();}});
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){document.querySelectorAll('.modal-overlay.open').forEach(m=>{m.classList.remove('open');if(m.id==='view-modal')resetTimer();});}
+});
+document.getElementById('auth-pass').addEventListener('keydown',e=>{if(e.key==='Enter')handleAuth();});
+
+// ── DAGENS RECEPT ──
+function renderDailyRecipes() {
+  const all = getRecipes();
+  // Exclude drinks and use day-of-year as seed so it changes daily
+  const now = new Date();
+  const dayOfYear = Math.floor((now - new Date(now.getFullYear(), 0, 0)) / 86400000);
+
+  const nonVeg = all.filter(r => {
+    const cats = getCats(r);
+    return !cats.includes('Dryck') && !cats.includes('Vegetarisk');
+  });
+  const veg = all.filter(r => {
+    const cats = getCats(r);
+    return cats.includes('Vegetarisk') && !cats.includes('Dryck');
+  });
+
+  function pickByDay(arr, seed) {
+    if (!arr.length) return null;
+    return arr[(seed + dayOfYear) % arr.length];
+  }
+
+  const pickedNonVeg = pickByDay(nonVeg, 0);
+  const pickedVeg = pickByDay(veg, 7);
+
+  const bar = document.getElementById('daily-cards');
+  if (!bar) return;
+
+  const cards = [];
+  if (pickedNonVeg) cards.push({ r: pickedNonVeg, tag: '🍖 För alla' });
+  if (pickedVeg) cards.push({ r: pickedVeg, tag: '🥦 Vegetariskt' });
+
+  if (!cards.length) {
+    document.getElementById('daily-recipe-bar').style.display = 'none';
+    return;
+  }
+
+  document.getElementById('daily-recipe-bar').style.display = 'block';
+  bar.innerHTML = cards.map(({ r, tag }) => `
+    <div class="daily-card" onclick="viewRecipe('${r.id}')">
+      <div class="daily-card-tag">${tag}</div>
+      <div class="daily-card-title">${r.title}</div>
+      <div class="daily-card-author">Skapat av <span>${r.author}</span></div>
+    </div>
+  `).join('');
+}
+function blockPaste(e) {
+  e.preventDefault();
+  // Show a brief shake/tooltip on the field
+  const el = e.target;
+  el.style.outline = '2px solid #E24B4A';
+  el.placeholder = t('pasteBlocked');
+  setTimeout(() => {
+    el.style.outline = '';
+    el.placeholder = el.dataset.ph || '';
+  }, 1800);
+}
+
+function attachPasteBlockers() {
+  const fields = ['r-title', 'r-instructions'];
+  fields.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.dataset.ph = el.placeholder;
+      el.addEventListener('paste', blockPaste);
+    }
+  });
+  // Also block on dynamically added ingredient inputs
+  document.getElementById('ingr-list').addEventListener('paste', (e) => {
+    if (e.target.classList.contains('ingr-input')) blockPaste(e);
+  });
+}
+
+// Call after DOM is ready
+document.addEventListener('DOMContentLoaded', attachPasteBlockers);
+// Also re-attach when modal opens (in case it wasn't ready)
+const _origOpenAddModal = openAddModal;
+openAddModal = function() {
+  _origOpenAddModal();
+  setTimeout(attachPasteBlockers, 50);
+};
+
+// ── RATINGS ──
+function getRatings() { try { return JSON.parse(localStorage.getItem('receptboken_ratings')||'{}'); } catch { return {}; } }
+function saveRatings(r) { try { localStorage.setItem('receptboken_ratings', JSON.stringify(r)); } catch {} }
+function getMyRating(id) { const r = getRatings(); return r[id]?.[currentUser?.email] || 0; }
+function getAvgRating(id) {
+  const r = getRatings(); if (!r[id]) return 0;
+  const vals = Object.values(r[id]);
+  return vals.length ? vals.reduce((a,b)=>a+b,0)/vals.length : 0;
+}
+function rateRecipe(n) {
+  if (!currentUser) return;
+  const r = getRatings();
+  if (!r[viewingId]) r[viewingId] = {};
+  // Toggle off if clicking same rating
+  if (r[viewingId][currentUser.email] === n) {
+    delete r[viewingId][currentUser.email];
+  } else {
+    r[viewingId][currentUser.email] = n;
+  }
+  saveRatings(r);
+  renderStars(viewingId);
+  renderRecipes(); // update card
+}
+function removeRating() {
+  if (!currentUser) return;
+  const r = getRatings();
+  if (r[viewingId]) delete r[viewingId][currentUser.email];
+  saveRatings(r);
+  renderStars(viewingId);
+  renderRecipes();
+}
+function renderStars(id) {
+  const my = getMyRating(id);
+  const avg = getAvgRating(id);
+  for (let i=1;i<=5;i++) {
+    const s = document.getElementById('s'+i);
+    if (s) s.classList.toggle('lit', i <= (my > 0 ? my : Math.round(avg)));
+  }
+  const avgEl = document.getElementById('rating-avg');
+  if (avgEl) {
+    const r = getRatings(); const count = r[id] ? Object.keys(r[id]).length : 0;
+    avgEl.textContent = avg > 0 ? avg.toFixed(1) + ' (' + count + ')' : 'Ingen betyg ännu';
+  }
+  const rmBtn = document.getElementById('remove-rating-btn');
+  if (rmBtn) rmBtn.style.display = my > 0 ? 'inline' : 'none';
+}
+
+// ── COMMENTS ──
+function getComments(id) { try { return JSON.parse(localStorage.getItem('receptboken_comments_'+id)||'[]'); } catch { return []; } }
+function saveComments(id, c) { try { localStorage.setItem('receptboken_comments_'+id, JSON.stringify(c)); } catch {} }
+function renderComments(id) {
+  const list = document.getElementById('comment-list');
+  if (!list) return;
+  const comments = getComments(id);
+  if (comments.length === 0) { list.innerHTML = '<p style="font-size:13px;color:#bbb;text-align:center;padding:8px 0;">Inga kommentarer ännu. Var den första!</p>'; return; }
+  list.innerHTML = comments.map((c,i) => {
+    const bg = avatarColor(c.author);
+    const initials = c.author.substring(0,2).toUpperCase();
+    const avatarHtml = c.avatarUrl ? `<img src="${c.avatarUrl}">` : initials;
+    const canDel = currentUser && currentUser.name === c.author;
+    return `<div class="comment-item">
+      <div class="comment-meta">
+        <div class="avatar-circle comment-avatar" style="background:${bg};width:28px;height:28px;font-size:11px;cursor:${canDel||true?'pointer':'default'}" onclick="openProfileByName('${c.author}')">${avatarHtml}</div>
+        <span class="comment-author" style="cursor:pointer" onclick="openProfileByName('${c.author}')">${c.author}</span>
+        <span class="comment-date">${formatDate(c.date)}</span>
+        ${canDel?`<button class="comment-own-del" onclick="deleteComment('${id}',${i})">✕</button>`:''}
+      </div>
+      <div class="comment-text">${c.text}</div>
+    </div>`;
+  }).join('');
+}
+function submitComment() {
+  if (!currentUser) { alert('Du måste vara inloggad för att kommentera.'); return; }
+  const inp = document.getElementById('comment-input');
+  const text = inp.value.trim();
+  if (!text) return;
+  const comments = getComments(viewingId);
+  const avatarUrl = getAvatarUrl(currentUser.email);
+  comments.push({ author: currentUser.name, text, date: Date.now(), avatarUrl });
+  saveComments(viewingId, comments);
+  inp.value = '';
+  renderComments(viewingId);
+}
+function deleteComment(id, idx) {
+  if (!confirm('Ta bort kommentar?')) return;
+  const comments = getComments(id);
+  comments.splice(idx, 1);
+  saveComments(id, comments);
+  renderComments(id);
+}
+function formatDate(ts) {
+  const d = new Date(ts); const now = new Date();
+  const diff = Math.floor((now-d)/1000);
+  if (diff < 60) return 'Nu';
+  if (diff < 3600) return Math.floor(diff/60) + ' min sedan';
+  if (diff < 86400) return Math.floor(diff/3600) + ' tim sedan';
+  return d.toLocaleDateString('sv-SE');
+}
+
+// ── AVATAR ──
+function avatarColor(name) {
+  const colors = ['#FF6B35','#27AE60','#2980B9','#8E44AD','#E91E8C','#F39C12','#16A085','#C0392B'];
+  let h = 0; for(let i=0;i<name.length;i++) h = name.charCodeAt(i)+((h<<5)-h);
+  return colors[Math.abs(h)%colors.length];
+}
+function getAvatarUrl(email) { try { const u=getUsers(); return u[email]?.avatar||null; } catch { return null; } }
+function uploadAvatar(input) {
+  if (!input.files[0] || !currentUser) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const url = e.target.result;
+    if (currentUser.email !== OWNER) {
+      const users = getUsers();
+      if (users[currentUser.email]) { users[currentUser.email].avatar = url; saveUsers(users); }
+    }
+    currentUser.avatar = url;
+    renderNavAvatar();
+    renderSettingsAvatar();
+  };
+  reader.readAsDataURL(input.files[0]);
+}
+function renderNavAvatar() {
+  const el = document.getElementById('nav-avatar');
+  if (!el || !currentUser) return;
+  el.style.background = avatarColor(currentUser.name);
+  if (currentUser.avatar || getAvatarUrl(currentUser.email)) {
+    const url = currentUser.avatar || getAvatarUrl(currentUser.email);
+    el.innerHTML = `<img src="${url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+  } else {
+    el.innerHTML = currentUser.name.substring(0,2).toUpperCase();
+  }
+}
+function renderSettingsAvatar() {
+  const el = document.getElementById('settings-avatar');
+  if (!el || !currentUser) return;
+  el.style.background = avatarColor(currentUser.name);
+  const url = currentUser.avatar || getAvatarUrl(currentUser.email);
+  if (url) { el.innerHTML = `<img src="${url}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`; }
+  else { el.innerHTML = currentUser.name.substring(0,2).toUpperCase(); }
+}
+
+// ── SHARE ──
+function shareRecipe() {
+  const r = allRecipes.find(x=>x.id===viewingId); if (!r) return;
+  const text = `🍽️ ${r.title}\n📝 Skapat av ${r.author}\n\nIngredienser:\n${r.ingr.join(', ')}\n\nGör så här:\n${r.instructions}`;
+  if (navigator.share) {
+    navigator.share({ title: r.title, text }).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(text).then(()=>{
+      const toast = document.getElementById('share-toast');
+      toast.textContent = '📋 Recepttext kopierad!';
+      toast.classList.add('show');
+      setTimeout(()=>toast.classList.remove('show'), 2500);
+    }).catch(()=>{
+      const toast = document.getElementById('share-toast');
+      toast.textContent = '❌ Kunde inte kopiera';
+      toast.classList.add('show');
+      setTimeout(()=>toast.classList.remove('show'), 2500);
+    });
+  }
+}
+
+// ── PROFILE ──
+function openOwnProfile() { if (currentUser) openProfileByName(currentUser.name); }
+function openProfileByName(name) {
+  const modal = document.getElementById('profile-modal');
+  const avatarEl = document.getElementById('profile-modal-avatar');
+  const nameEl = document.getElementById('profile-modal-name');
+  const subEl = document.getElementById('profile-modal-sub');
+  const recipesEl = document.getElementById('profile-modal-recipes');
+  nameEl.textContent = name;
+  avatarEl.style.background = avatarColor(name);
+  // Find avatar from users
+  const users = getUsers();
+  let avatarUrl = null;
+  Object.entries(users).forEach(([email, u]) => { if (u.display === name && u.avatar) avatarUrl = u.avatar; });
+  if (currentUser && currentUser.name === name && (currentUser.avatar || getAvatarUrl(currentUser.email))) {
+    avatarUrl = currentUser.avatar || getAvatarUrl(currentUser.email);
+  }
+  if (avatarUrl) { avatarEl.innerHTML = `<img src="${avatarUrl}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`; }
+  else { avatarEl.innerHTML = name.substring(0,2).toUpperCase(); avatarEl.style.color='#fff'; }
+  const myRecipes = allRecipes.filter(r=>r.author===name);
+  subEl.textContent = myRecipes.length + ' recept';
+  if (myRecipes.length === 0) {
+    recipesEl.innerHTML = '<p style="font-size:13px;color:#bbb;text-align:center;padding:1rem 0;">Inga recept ännu.</p>';
+  } else {
+    recipesEl.innerHTML = myRecipes.map(r => {
+      const avg = getAvgRating(r.id);
+      const stars = avg > 0 ? '★'.repeat(Math.round(avg)) + '☆'.repeat(5-Math.round(avg)) : '☆☆☆☆☆';
+      return `<div class="profile-recipe-row" onclick="closeModal('profile-modal');viewRecipe('${r.id}')">
+        <span class="profile-recipe-title">${r.title}</span>
+        <span class="profile-recipe-stars">${stars}</span>
+      </div>`;
+    }).join('');
+  }
+  openModal('profile-modal');
+}
+
+// ── FAVORITES ──
+let favOnly = false;
+function getFavs() { try { return JSON.parse(localStorage.getItem('receptboken_favs_'+(currentUser?.email||''))||'[]'); } catch { return []; } }
+function saveFavs(f) { try { localStorage.setItem('receptboken_favs_'+(currentUser?.email||''), JSON.stringify(f)); } catch {} }
+function toggleFav(id, e) {
+  e.stopPropagation();
+  const favs = getFavs();
+  const idx = favs.indexOf(id);
+  if (idx===-1) favs.push(id); else favs.splice(idx,1);
+  saveFavs(favs);
+  renderDagensRecept();
+  renderRecipes();
+}
+function toggleFavNav() {
+  favOnly = !favOnly;
+  const btn = document.getElementById('fav-nav-btn');
+  if (btn) btn.textContent = favOnly ? '❤️' : '🤍';
+  const tog = document.getElementById('setting-fav-only');
+  if (tog) tog.checked = favOnly;
+  renderDagensRecept();
+  renderRecipes();
+}
+
+function toggleFavFilter(el) {
+  if (el && el.checked !== undefined) {
+    favOnly = el.checked;
+  } else {
+    const tog = document.getElementById('setting-fav-only');
+    if (tog) favOnly = tog.checked;
+  }
+  const btn = document.getElementById('fav-nav-btn');
+  if (btn) btn.textContent = favOnly ? '❤️' : '🤍';
+  const tog = document.getElementById('setting-fav-only');
+  if (tog) tog.checked = favOnly;
+  renderDagensRecept();
+  renderRecipes();
+}
+
+// ── LANGUAGE TRANSLATIONS ──
+const LANGS = {
+sv: {
+  // Nav & auth
+  search:'Sök på recept, ingrediens eller kategori...', logout:'Logga ut', welcome:'Välkommen,',
+  login:'Logga in', register:'Skapa konto', emailPh:'E-postadress', passPh:'Lösenord', remember:'Kom ihåg mig',
+  createdBy:'Skapat av', recipes:'recept', loading:'Hämtar recept...',
+  noRecipes:'Inga recept ännu', noRecipesMsg:'Var den första att lägga till ett recept!',
+  noFavs:'Inga favoriter ännu', noFavsMsg:'Tryck på 🤍 på ett recept för att spara det här!',
+  noSearch:'Inga träffar', noSearchMsg:'Prova ett annat sökord.',
+  // Categories
+  cAll:'Alla', cBreakfast:'🥞 Frukost', cLunch:'🥗 Lunch', cDinner:'🍝 Middag',
+  cDessert:'🍰 Dessert', cVeg:'🥦 Vegetarisk', cSnack:'🍿 Snack', cDrink:'🥤 Dryck', cOther:'✨ Övrigt',
+  // Headings
+  todayTitle:'🌟 Dagens recept', allTitle:'Alla recept', todayVeg:'🥦 Vegetariskt alternativ', todayMeat:'🍽️ Med kött eller fisk',
+  todayBadge:'⭐ Dagens recept',
+  // Recipe view
+  vIngredients:'Ingredienser', vInstructions:'Gör så här', vTimer:'⏱️ Timer', vPortions:'Portioner:',
+  vDelete:'🗑️ Ta bort recept',
+  // Timer
+  timerH:'Tim', timerM:'Min', timerS:'Sek', timerStart:'▶ Start', timerPause:'⏸ Paus', timerReset:'↺ Återställ',
+  // Add recipe form
+  addModalTitle:'Nytt recept', fTitle:'Receptets titel *', fCats:'Kategorier * (välj en eller flera)',
+  fImage:'Bild (valfritt)', fImagePh:'Klicka för att ladda upp en bild',
+  fServings:'Antal portioner', fServingsPh:'T.ex. 4',
+  fIngr:'Ingredienser *', fIngrPh:'T.ex. 200g mjöl',
+  fInstr:'Gör så här *', fInstrPh:'Beskriv steg för steg hur receptet tillagas...',
+  fAddIngr:'+ Lägg till ingrediens', fPublish:'Publicera recept',
+  fErrTitle:'Ange en titel.', fErrCat:'Välj minst en kategori.', fErrIngr:'Lägg till minst en ingrediens.', fErrInstr:'Beskriv hur receptet görs.',
+  // Settings
+  sTitle:'Inställningar',
+  sAppearance:'🎨 Utseende', sDark:'Mörkt läge', sDarkSub:'Skonsamt för ögonen', sTextSize:'Textstorlek',
+  sAccount:'👤 Konto', sLoggedAs:'Inloggad som', sChangeName:'Byt visningsnamn', sNamePh:'Nytt namn',
+  sSave:'Spara', sChangePass:'Byt lösenord', sChangePassBtn:'Ändra',
+  sCurPass:'Nuvarande lösenord', sNewPass:'Nytt lösenord', sConfPass:'Bekräfta nytt lösenord',
+  sSavePass:'Spara nytt lösenord',
+  sDeleteAcc:'Radera konto', sDeleteAccSub:'Tar bort konto och dina recept', sDeleteAccBtn:'Radera',
+  sRecipes:'📚 Recept', sShowSeed:'Visa Claudes exempelrecept', sShowSeedSub:'Dölj eller visa de inbyggda recepten',
+  sReseed:'Återställ exempelrecept', sReseedSub:'Lägger tillbaka Claudes recept', sReseedBtn:'Återställ',
+  sMyRecipes:'Hantera mina recept', sMyRecipesSub:'Radera ett eller alla dina egna recept',
+  sDeleteAllMine:'Radera alla mina recept',
+  sTimerSound:'🔔 Timerljud', sTimerOn:'Aktivera timerljud', sTimerOnSub:'Spelar ett ljud när timern är klar',
+  sVolume:'Volym', sSoundType:'Ljudtyp',
+  sOptDing:'Ding 🔔', sOptBeep:'Beep 📣', sOptBell:'Klocka 🎵',
+  sTestSound:'Testa ljud', sTestSoundBtn:'▶ Spela',
+  sNotif:'🔔 Aviseringar', sNotifLabel:'Webbläsaravisering', sNotifSub:'Notis även när fliken är minimerad',
+  sFav:'❤️ Favoriter', sFavLabel:'Visa bara favoriter', sFavSub:'Filtrera på dina sparade recept',
+  sFavOpen:'Öppna favoriter', sFavBtn:'Se favoriter',
+  sLang:'🌍 Språk', sLangLabel:'Välj språk', sLangSub:'Ändrar gränssnittets språk',
+  // Password change messages
+  passWrongCur:'Fel nuvarande lösenord.', passTooShort:'Lösenordet måste ha minst 4 tecken.',
+  passMismatch:'Lösenorden matchar inte.', passChanged:'Lösenord uppdaterat!',
+  nameUpdated:'Visningsnamn uppdaterat!', confirmDelete:'Radera ditt konto och alla dina recept? Detta går inte att ångra.',
+  confirmDeleteRecipe:'Ta bort detta recept?', confirmDeleteAll:'Radera ALLA dina egna recept? Detta går inte att ångra.',
+  seedRestored:'Exempelrecept återställda!',
+  pasteBlocked:'Inklistring är inte tillåten — skriv manuellt!',
+  publishing:'Publicerar...'
+},
+en: {
+  search:'Search recipes, ingredients or category...', logout:'Log out', welcome:'Welcome,',
+  login:'Log in', register:'Create account', emailPh:'Email address', passPh:'Password', remember:'Remember me',
+  createdBy:'Created by', recipes:'recipes', loading:'Loading recipes...',
+  noRecipes:'No recipes yet', noRecipesMsg:'Be the first to add a recipe!',
+  noFavs:'No favourites yet', noFavsMsg:'Tap 🤍 on a recipe to save it here!',
+  noSearch:'No results', noSearchMsg:'Try another keyword.',
+  cAll:'All', cBreakfast:'🥞 Breakfast', cLunch:'🥗 Lunch', cDinner:'🍝 Dinner',
+  cDessert:'🍰 Dessert', cVeg:'🥦 Vegetarian', cSnack:'🍿 Snack', cDrink:'🥤 Drink', cOther:'✨ Other',
+  todayTitle:'🌟 Today\'s recipe', allTitle:'All recipes', todayVeg:'🥦 Vegetarian option', todayMeat:'🍽️ With meat or fish',
+  todayBadge:'⭐ Today\'s recipe',
+  vIngredients:'Ingredients', vInstructions:'Instructions', vTimer:'⏱️ Timer', vPortions:'Servings:',
+  vDelete:'🗑️ Delete recipe',
+  timerH:'Hrs', timerM:'Min', timerS:'Sec', timerStart:'▶ Start', timerPause:'⏸ Pause', timerReset:'↺ Reset',
+  addModalTitle:'New recipe', fTitle:'Recipe title *', fCats:'Categories * (pick one or more)',
+  fImage:'Image (optional)', fImagePh:'Click to upload an image',
+  fServings:'Number of servings', fServingsPh:'E.g. 4',
+  fIngr:'Ingredients *', fIngrPh:'E.g. 200g flour',
+  fInstr:'Instructions *', fInstrPh:'Describe step by step how to make the recipe...',
+  fAddIngr:'+ Add ingredient', fPublish:'Publish recipe',
+  fErrTitle:'Enter a title.', fErrCat:'Select at least one category.', fErrIngr:'Add at least one ingredient.', fErrInstr:'Describe how to make the recipe.',
+  sTitle:'Settings',
+  sAppearance:'🎨 Appearance', sDark:'Dark mode', sDarkSub:'Easy on the eyes', sTextSize:'Text size',
+  sAccount:'👤 Account', sLoggedAs:'Logged in as', sChangeName:'Change display name', sNamePh:'New name',
+  sSave:'Save', sChangePass:'Change password', sChangePassBtn:'Change',
+  sCurPass:'Current password', sNewPass:'New password', sConfPass:'Confirm new password',
+  sSavePass:'Save new password',
+  sDeleteAcc:'Delete account', sDeleteAccSub:'Removes account and your recipes', sDeleteAccBtn:'Delete',
+  sRecipes:'📚 Recipes', sShowSeed:'Show Claude\'s example recipes', sShowSeedSub:'Hide or show built-in recipes',
+  sReseed:'Restore example recipes', sReseedSub:'Brings back Claude\'s recipes', sReseedBtn:'Restore',
+  sMyRecipes:'Manage my recipes', sMyRecipesSub:'Delete one or all your recipes',
+  sDeleteAllMine:'Delete all my recipes',
+  sTimerSound:'🔔 Timer sound', sTimerOn:'Enable timer sound', sTimerOnSub:'Plays a sound when timer ends',
+  sVolume:'Volume', sSoundType:'Sound type',
+  sOptDing:'Ding 🔔', sOptBeep:'Beep 📣', sOptBell:'Bell 🎵',
+  sTestSound:'Test sound', sTestSoundBtn:'▶ Play',
+  sNotif:'🔔 Notifications', sNotifLabel:'Browser notification', sNotifSub:'Alert even when tab is minimized',
+  sFav:'❤️ Favourites', sFavLabel:'Show only favourites', sFavSub:'Filter your saved recipes',
+  sFavOpen:'Open favourites', sFavBtn:'View favourites',
+  sLang:'🌍 Language', sLangLabel:'Choose language', sLangSub:'Changes the interface language',
+  passWrongCur:'Wrong current password.', passTooShort:'Password must be at least 4 characters.',
+  passMismatch:'Passwords do not match.', passChanged:'Password updated!',
+  nameUpdated:'Display name updated!', confirmDelete:'Delete your account and all your recipes? This cannot be undone.',
+  confirmDeleteRecipe:'Delete this recipe?', confirmDeleteAll:'Delete ALL your recipes? This cannot be undone.',
+  seedRestored:'Example recipes restored!',
+  pasteBlocked:'Pasting is not allowed — please type manually!',
+  publishing:'Publishing...'
+},
+de: {
+  search:'Rezepte, Zutaten oder Kategorie suchen...', logout:'Abmelden', welcome:'Willkommen,',
+  login:'Anmelden', register:'Konto erstellen', emailPh:'E-Mail-Adresse', passPh:'Passwort', remember:'Angemeldet bleiben',
+  createdBy:'Erstellt von', recipes:'Rezepte', loading:'Rezepte werden geladen...',
+  noRecipes:'Noch keine Rezepte', noRecipesMsg:'Sei der Erste, der ein Rezept hinzufügt!',
+  noSearch:'Keine Ergebnisse', noSearchMsg:'Versuche ein anderes Stichwort.',
+  cAll:'Alle', cBreakfast:'🥞 Frühstück', cLunch:'🥗 Mittagessen', cDinner:'🍝 Abendessen',
+  cDessert:'🍰 Dessert', cVeg:'🥦 Vegetarisch', cSnack:'🍿 Snack', cDrink:'🥤 Getränk', cOther:'✨ Sonstiges',
+  todayTitle:'🌟 Rezept des Tages', allTitle:'Alle Rezepte', todayVeg:'🥦 Vegetarische Option', todayMeat:'🍽️ Mit Fleisch oder Fisch',
+  todayBadge:'⭐ Rezept des Tages',
+  vIngredients:'Zutaten', vInstructions:'Zubereitung', vTimer:'⏱️ Timer', vPortions:'Portionen:',
+  vDelete:'🗑️ Rezept löschen',
+  timerH:'Std', timerM:'Min', timerS:'Sek', timerStart:'▶ Start', timerPause:'⏸ Pause', timerReset:'↺ Zurücksetzen',
+  addModalTitle:'Neues Rezept', fTitle:'Rezepttitel *', fCats:'Kategorien * (eine oder mehrere wählen)',
+  fImage:'Bild (optional)', fImagePh:'Zum Hochladen klicken',
+  fServings:'Anzahl der Portionen', fServingsPh:'Z.B. 4',
+  fIngr:'Zutaten *', fIngrPh:'Z.B. 200g Mehl',
+  fInstr:'Zubereitung *', fInstrPh:'Schritt für Schritt beschreiben...',
+  fAddIngr:'+ Zutat hinzufügen', fPublish:'Rezept veröffentlichen',
+  fErrTitle:'Bitte einen Titel eingeben.', fErrCat:'Bitte mindestens eine Kategorie wählen.', fErrIngr:'Mindestens eine Zutat hinzufügen.', fErrInstr:'Bitte die Zubereitung beschreiben.',
+  sTitle:'Einstellungen',
+  sAppearance:'🎨 Aussehen', sDark:'Dunkler Modus', sDarkSub:'Schont die Augen', sTextSize:'Schriftgröße',
+  sAccount:'👤 Konto', sLoggedAs:'Angemeldet als', sChangeName:'Anzeigenamen ändern', sNamePh:'Neuer Name',
+  sSave:'Speichern', sChangePass:'Passwort ändern', sChangePassBtn:'Ändern',
+  sCurPass:'Aktuelles Passwort', sNewPass:'Neues Passwort', sConfPass:'Neues Passwort bestätigen',
+  sSavePass:'Neues Passwort speichern',
+  sDeleteAcc:'Konto löschen', sDeleteAccSub:'Löscht Konto und deine Rezepte', sDeleteAccBtn:'Löschen',
+  sRecipes:'📚 Rezepte', sShowSeed:'Claudes Beispielrezepte anzeigen', sShowSeedSub:'Eingebaute Rezepte ein-/ausblenden',
+  sReseed:'Beispielrezepte wiederherstellen', sReseedSub:'Bringt Claudes Rezepte zurück', sReseedBtn:'Wiederherstellen',
+  sMyRecipes:'Meine Rezepte verwalten', sMyRecipesSub:'Ein oder alle eigene Rezepte löschen',
+  sDeleteAllMine:'Alle meine Rezepte löschen',
+  sTimerSound:'🔔 Timer-Ton', sTimerOn:'Timer-Ton aktivieren', sTimerOnSub:'Spielt einen Ton wenn der Timer endet',
+  sVolume:'Lautstärke', sSoundType:'Tontyp',
+  sOptDing:'Ding 🔔', sOptBeep:'Beep 📣', sOptBell:'Glocke 🎵',
+  sTestSound:'Ton testen', sTestSoundBtn:'▶ Spielen',
+  sNotif:'🔔 Benachrichtigungen', sNotifLabel:'Browser-Benachrichtigung', sNotifSub:'Benachrichtigung auch wenn Tab minimiert',
+  sFav:'❤️ Favoriten', sFavLabel:'Nur Favoriten anzeigen', sFavSub:'Gespeicherte Rezepte filtern',
+  sFavOpen:'Favoriten öffnen', sFavBtn:'Favoriten anzeigen',
+  sLang:'🌍 Sprache', sLangLabel:'Sprache wählen', sLangSub:'Ändert die Sprache der Benutzeroberfläche',
+  passWrongCur:'Falsches aktuelles Passwort.', passTooShort:'Passwort muss mindestens 4 Zeichen haben.',
+  passMismatch:'Passwörter stimmen nicht überein.', passChanged:'Passwort aktualisiert!',
+  nameUpdated:'Anzeigename aktualisiert!', confirmDelete:'Konto und alle Rezepte löschen? Dies kann nicht rückgängig gemacht werden.',
+  confirmDeleteRecipe:'Dieses Rezept löschen?', confirmDeleteAll:'ALLE eigene Rezepte löschen? Dies kann nicht rückgängig gemacht werden.',
+  seedRestored:'Beispielrezepte wiederhergestellt!',
+  pasteBlocked:'Einfügen nicht erlaubt — bitte manuell eingeben!',
+  publishing:'Wird veröffentlicht...'
+}
+};
+
+let currentLang = 'sv';
+function t(k) { return (LANGS[currentLang]&&LANGS[currentLang][k]) || LANGS.sv[k] || k; }
+
+function applyLanguage() {
+  const sel = document.getElementById('setting-lang');
+  if (sel) currentLang = sel.value;
+  settings.lang = currentLang;
+  try { localStorage.setItem('receptboken_settings', JSON.stringify(settings)); } catch {}
+
+  function set(id, txt) { const el = document.getElementById(id); if (el) el.textContent = txt; }
+  function ph(id, txt) { const el = document.getElementById(id); if (el) el.placeholder = txt; }
+  function qs(sel2, txt) { const el = document.querySelector(sel2); if (el) el.textContent = txt; }
+  function qsi(sel2, txt) { const el = document.querySelector(sel2); if (el) el.innerHTML = txt; }
+
+  // Nav
+  const fnb = document.getElementById('fav-nav-btn'); if (fnb) fnb.title = t('sFav');
+  ph('search-input', t('search'));
+  qs('.nav-btn-logout', t('logout'));
+  if (currentUser) set('welcome-text', t('welcome') + ' ' + currentUser.name + '!');
+
+  // Auth
+  ph('auth-user', t('emailPh'));
+  ph('auth-pass', t('passPh'));
+  const mb = document.getElementById('auth-main-btn');
+  if (mb) mb.textContent = currentTab === 'login' ? t('login') : t('register');
+  const tabs = document.querySelectorAll('.auth-tab');
+  if (tabs[0]) tabs[0].textContent = t('login');
+  if (tabs[1]) tabs[1].textContent = t('register');
+  const rw = document.getElementById('remember-wrap');
+  if (rw) { const cb = rw.querySelector('input[type=checkbox]'); if (cb) { rw.innerHTML = ''; rw.appendChild(cb); rw.append(' ' + t('remember')); } }
+
+  // Cat pills
+  set('pill-all', t('cAll'));
+  set('pill-frukost', t('cBreakfast'));
+  set('pill-lunch', t('cLunch'));
+  set('pill-middag', t('cDinner'));
+  set('pill-dessert', t('cDessert'));
+  set('pill-veg', t('cVeg'));
+  set('pill-snack', t('cSnack'));
+  set('pill-dryck', t('cDrink'));
+  set('pill-ovrigt', t('cOther'));
+
+  // Section headings
+  qs('#dagens-section .section-title', t('todayTitle'));
+  qs('.section-header .section-title', t('allTitle'));
+  qs('#loading-state p', t('loading'));
+
+  // Add recipe modal
+  qs('#add-modal .modal-header h2', t('addModalTitle'));
+  const fLabels = document.querySelectorAll('#add-modal .form-label');
+  const fKeys = ['fTitle','fCats','fImage','fServings','fIngr','fInstr'];
+  fLabels.forEach((l, i) => { if (fKeys[i]) l.textContent = t(fKeys[i]); });
+  ph('r-title', t('fTitle').replace(' *',''));
+  ph('r-servings', t('fServingsPh'));
+  ph('r-instructions', t('fInstrPh'));
+  qs('.add-ingr-btn', t('fAddIngr'));
+  qs('#upload-placeholder p', t('fImagePh'));
+  const sb2 = document.getElementById('submit-btn'); if (sb2) sb2.textContent = t('fPublish');
+
+  // View recipe modal
+  const vhs = document.querySelectorAll('.view-section h3');
+  const vi = document.getElementById('view-h-ingr'); if(vi) vi.textContent = t('vIngredients');
+  const vins = document.getElementById('view-h-instr'); if(vins) vins.textContent = t('vInstructions');
+  const vtim = document.getElementById('view-h-timer'); if(vtim) vtim.textContent = t('vTimer');
+  const vpl = document.getElementById('view-portions-label'); if(vpl) vpl.textContent = t('vPortions');
+  qs('.timer-section h3', t('vTimer'));
+  qs('#view-modal .view-actions #delete-btn', t('vDelete'));
+  const portSpan = document.querySelector('.view-section span[style*="color:#aaa"]');
+  if (portSpan) portSpan.textContent = t('vPortions');
+  const tl = document.querySelectorAll('.timer-label span');
+  if (tl[0]) tl[0].textContent = t('timerH');
+  if (tl[1]) tl[1].textContent = t('timerM');
+  if (tl[2]) tl[2].textContent = t('timerS');
+  const tsb = document.getElementById('timer-start-btn');
+  if (tsb) tsb.textContent = tsb.textContent.includes('▶') ? t('timerStart') : t('timerPause');
+  qs('.timer-btn.reset', t('timerReset'));
+
+  // Settings modal — all labels
+  set('s-title', t('sTitle'));
+  set('s-appearance', '🎨 ' + t('sAppearance').replace('🎨 ',''));
+  qs('#settings-modal h3:nth-of-type(1)', t('sAppearance'));
+  set('s-dark', t('sDark'));
+  set('s-dark-sub', t('sDarkSub'));
+  set('s-textsize', t('sTextSize'));
+  set('s-account', t('sAccount'));
+  set('s-loggedas', t('sLoggedAs'));
+  ph('new-display-name', t('sNamePh'));
+  set('s-changename', t('sChangeName'));
+  set('s-savename-btn', t('sSave'));
+  set('s-changepass', t('sChangePass'));
+  set('s-changepass-btn', t('sChangePassBtn'));
+  ph('cur-pass', t('sCurPass'));
+  ph('new-pass', t('sNewPass'));
+  ph('new-pass2', t('sConfPass'));
+  set('s-savepass-btn', t('sSavePass'));
+  set('s-deleteacc', t('sDeleteAcc'));
+  set('s-deleteacc-sub', t('sDeleteAccSub'));
+  set('s-deleteacc-btn', t('sDeleteAccBtn'));
+  set('s-recipes', t('sRecipes'));
+  set('s-showseed', t('sShowSeed'));
+  set('s-showseed-sub', t('sShowSeedSub'));
+  set('s-reseed', t('sReseed'));
+  set('s-reseed-sub', t('sReseedSub'));
+  set('s-reseed-btn', t('sReseedBtn'));
+  set('s-myrecipes', t('sMyRecipes'));
+  set('s-myrecipes-sub', t('sMyRecipesSub'));
+  set('s-deleteallmine', t('sDeleteAllMine'));
+  set('s-timersound', t('sTimerSound'));
+  set('s-timeron', t('sTimerOn'));
+  set('s-timeron-sub', t('sTimerOnSub'));
+  set('s-volume', t('sVolume'));
+  set('s-soundtype', t('sSoundType'));
+  set('s-opt-ding', t('sOptDing'));
+  set('s-opt-beep', t('sOptBeep'));
+  set('s-opt-bell', t('sOptBell'));
+  set('s-testsound', t('sTestSound'));
+  set('s-testsound-btn', t('sTestSoundBtn'));
+  set('s-notif', t('sNotif'));
+  set('s-notif-label', t('sNotifLabel'));
+  set('s-notif-sub', t('sNotifSub'));
+  set('s-fav-title', t('sFav'));
+  set('s-fav-label', t('sFavLabel'));
+  set('s-fav-sub', t('sFavSub'));
+  set('s-fav-open', t('sFavOpen'));
+  set('s-fav-btn-text', t('sFavBtn'));
+  set('s-lang-title', t('sLang'));
+  set('s-lang-label', t('sLangLabel'));
+  set('s-lang-sub', t('sLangSub'));
+
+  renderRecipes();
+  renderDagensRecept();
+}
+seedIfEmpty();
+(function(){
+  const saved=getSavedLogin(); if(!saved) return;
+  const {email,pass}=saved;
+  if(email===OWNER&&pass===OWNER_PASS){loginAs('Admin',email);return;}
+  const users=getUsers();
+  if(users[email]&&users[email].pass===pass){loginAs(users[email].display,email);}
+  else clearSavedLogin();
+})();
+</script>
+</body>
+</html>
